@@ -1,7 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE Category(
-    CategoryID UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    CategoryID UUID PRIMARY KEY,
     Name VARCHAR(255),
     ParentCategoryID UUID
 );
@@ -13,7 +13,7 @@ ALTER TABLE Category
     ADD CONSTRAINT uniqueNameParentCombination UNIQUE(Name, ParentCategoryID);
 
 CREATE TABLE Product(
-    ProductID UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    ProductID UUID PRIMARY KEY,
     Title VARCHAR(255),
     Rating FLOAT,
     Rank INT,
@@ -78,7 +78,7 @@ CREATE TABLE Customer(
 );
 
 CREATE TABLE CustomerOrder(
-    OrderID UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    OrderID UUID PRIMARY KEY,
     Customer UUID,
     Date DATE,
     FOREIGN KEY (Customer) REFERENCES Customer(CustomerID)
@@ -94,7 +94,7 @@ CREATE TABLE OrderDetail(
 );
 
 CREATE TABLE Review(
-    ReviewID UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    ReviewID UUID PRIMARY KEY,
     Customer UUID,
     Product UUID,
     Stars INT,
