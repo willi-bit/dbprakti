@@ -6,6 +6,7 @@ public class DVD {
     public Integer length;
     public Integer regionCode;
     public String actors;
+    public String creator;
     public String director;
 
     public DVD(String id, String format, Integer length, Integer regionCode, String actors, String director) {

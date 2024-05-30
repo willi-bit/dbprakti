@@ -5,6 +5,6 @@ public class Book {
     public String author;
     public String publisher;
     public int pages;
-    public int releaseDate;
-    public int ISBN;
+    public java.sql.Date releaseDate;
+    public String ISBN;
 }

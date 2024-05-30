@@ -55,6 +55,69 @@ public class DatabaseImporter {
         }
     }
 
+    public void InsertBook(Book book){
+
+        String insertBookSQL = "INSERT INTO book (author, pages, releasedate, isbn, publisher, productid) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
+            PreparedStatement preparedStatement = connection.prepareStatement(insertBookSQL)){
+
+            preparedStatement.setString(1, book.author);
+            preparedStatement.setInt(2, book.pages);
+            preparedStatement.setDate(3, book.releaseDate);
+            preparedStatement.setString(4, book.ISBN);
+            preparedStatement.setString(5, book.publisher);
+            preparedStatement.setObject(6, book.id);
+
+            preparedStatement.execute();
+
+        } catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void InsertDVD(DVD dvd){
+
+        String insertDVDSQL = "INSERT INTO dvd (format, length, regioncode, actors, creator, director, productid) VALUES (?,?,?,?,?,?,?)";
+
+        try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
+            PreparedStatement preparedStatement = connection.prepareStatement(insertDVDSQL)){
+
+            preparedStatement.setString(1, dvd.format);
+            preparedStatement.setInt(2, dvd.length);
+            preparedStatement.setInt(3, dvd.regionCode);
+            preparedStatement.setString(4, dvd.actors);
+            preparedStatement.setString(5, dvd.creator);
+            preparedStatement.setString(6, dvd.director);
+            preparedStatement.setObject(7, dvd.id);
+
+            preparedStatement.execute();
+
+        } catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void InsertCD(CD cd){
+
+        String insertCDSQL = "INSERT INTO cd (artist, label, releasedate, titlelist, productid) VALUES (?,?,?,?,?)";
+
+        try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
+            PreparedStatement preparedStatement = connection.prepareStatement(insertCDSQL)){
+
+            preparedStatement.setString(1, cd.artist);
+            preparedStatement.setString(2, cd.label);
+            preparedStatement.setDate(3, cd.releaseDate);
+            preparedStatement.setString(4, cd.titleList);
+            preparedStatement.setObject(5, cd.id);
+
+            preparedStatement.execute();
+
+        } catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
     public void InsertProduct(Product product){
 
         String insertProductSQL = "INSERT INTO product (title, rating, rank, productnr, picture, category, productid) VALUES (?,?,?,?,?,?,?)";
