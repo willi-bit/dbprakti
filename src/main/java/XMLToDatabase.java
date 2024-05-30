@@ -1,6 +1,8 @@
 import org.w3c.dom.*;
 import javax.xml.parsers.*;
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class XMLToDatabase {
@@ -29,7 +31,7 @@ public class XMLToDatabase {
             e.printStackTrace();
         }
     }
-    private static void processDresden(Element startElement) {
+    private static void processDresden(Element startElement) throws ParseException {
         NodeList nodes = startElement.getElementsByTagName("item");
         String storeName = startElement.getAttribute("name");
         String storeAddress = startElement.getAttribute("zip") + ", " + startElement.getAttribute("street");
@@ -38,15 +40,18 @@ public class XMLToDatabase {
             Element element = (Element) nodes.item(i);
             String name = element.getAttribute("pgroup").trim().split("\\n")[0];
             switch (name) {
-                case "DVD": {
+                case "DVD":
                     String id =  element.getAttribute("asin").trim();
                     String title = element.getElementsByTagName("title").item(0).getTextContent().trim().split("\\n")[0];
-                    String[] actorElements = element.getElementsByTagName("actors").item(0).getTextContent().trim().split("\\n");
-                    StringBuilder actorBuilder = new StringBuilder();
-                    for (String authorElement : actorElements) {
-                        actorBuilder.append(authorElement).append(", ");
+
+                    Element actorsElement = (Element) element.getElementsByTagName("actors").item(0);
+                    NodeList actorElements = actorsElement.getElementsByTagName("actor");
+                    String[] actorsArr = new String[actorElements.getLength()];
+                    for (int j = 0; j < actorElements.getLength(); j++) {
+                        Node actor = actorElements.item(j);
+                        actorsArr[j] = actor.getTextContent().trim().split("\\n")[0];
                     }
-                    String actors = actorBuilder.toString();
+                    String actors = String.join(", ", actorsArr);
                     String director =  element.getElementsByTagName("director").item(0) != null ?
                             element.getElementsByTagName("director").item(0).getTextContent().trim().split("\\n")[0] :
                             "";
@@ -60,15 +65,45 @@ public class XMLToDatabase {
                             Integer.parseInt(dvdspec.getElementsByTagName("regioncode").item(0).getTextContent().trim().split("\\n")[0]) :
                             null;
                     DVD dvd = new DVD(id, format, length, regionCode, actors, director);
-                }
-                case "Music": {
-                    String[] actorElements = element.getElementsByTagName("actors").item(0).getTextContent().trim().split("\\n");
-                    StringBuilder actorBuilder = new StringBuilder();
-                    for (String authorElement : actorElements) {
-                        actorBuilder.append(authorElement).append(", ");
+                    break;
+                case "Music":
+                    String pGroup = element.getAttribute("pgroup").trim().split("\\n")[0];
+                    String musicTitle = element.getElementsByTagName("title").item(0).getTextContent().trim().split("\\n")[0];
+                    String musicId = element.getAttribute("asin").trim().split("\\n")[0];
+                    Element artistsElement = (Element) element.getElementsByTagName("artists").item(0);
+                    NodeList artistElements = artistsElement.getElementsByTagName("artist");
+                    String[] artistsArr = new String[artistElements.getLength()];
+                    for (int j = 0; j < artistElements.getLength(); j++) {
+                        Node actor = artistElements.item(j);
+                        artistsArr[j] = actor.getTextContent().trim();
                     }
-                    String actors = actorBuilder.toString();
-                }
+                    String artist = String.join(", ", artistsArr);
+
+                    Element labelsElement = (Element) element.getElementsByTagName("labels").item(0);
+                    NodeList labelElements = labelsElement.getElementsByTagName("label");
+                    String[] labelsArr = new String[labelElements.getLength()];
+                    for (int j = 0; j < labelElements.getLength(); j++) {
+                        Node labelElement = labelElements.item(j);
+                        labelsArr[j] = labelElement.getTextContent().trim();
+                    }
+                    String label = String.join(", ", labelsArr);
+
+                    Element tracksElement = (Element) element.getElementsByTagName("tracks").item(0);
+                    NodeList trackElements = tracksElement.getElementsByTagName("title");
+                    String[] tracksArr = new String[trackElements.getLength()];
+                    for (int j = 0; j < trackElements.getLength(); j++) {
+                        Node loopElement = trackElements.item(j);
+                        tracksArr[j] = loopElement.getTextContent().trim();
+                    }
+                    String titleList = String.join(", ", tracksArr);
+
+                    Element musicSpec = (Element) element.getElementsByTagName("musicspec").item(0);
+                    String datePattern = "yyyy-MM-dd";
+                    SimpleDateFormat  simpleDateFormat = new SimpleDateFormat(datePattern);
+                    String dateText = musicSpec.getElementsByTagName("releasedate").item(0).getTextContent().trim();
+                    Date date = simpleDateFormat.parse(dateText);
+                    CD cd = new CD(musicId, artist, label, date, titleList);
+                    break;
             }
         }
     }
