@@ -1,31 +1,54 @@
 import org.w3c.dom.*;
 import javax.xml.parsers.*;
 import java.io.File;
-import java.sql.*;
 import java.util.*;
 
 public class XMLToDatabase {
 
-    public static void main(String[] args) {
-        String xmlFilePath = "data/categories.xml";
-        // String jdbcUrl = "jdbc:postgresql://localhost:5432/your_database";
-        String username = "your_username";
-        String password = "your_password";
+    String leipzigPath = "data/leipzig_transformed.xml";
+    String reviewPath = "data/reviews.csv";
+    public static void main() {
 
         try {
             // Parse the XML file
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document document = builder.parse(new File(xmlFilePath));
-            document.getDocumentElement().normalize();
-
-            // Process the XML and insert data into the database
-            processCategories(document.getDocumentElement(), null);
+            // Uncomment to start parsing categories
+            // startCategoryParsing();
+            startDresdenParsing();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
+    private static void startDresdenParsing() {
+        String dresdenPath = "data/dresden.xml";
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(new File(dresdenPath));
+            document.getDocumentElement().normalize();
+            processDresden(document.getDocumentElement());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private static void processDresden(Element startElement) {
+        NodeList nodes = startElement.getChildNodes();
+        System.out.println("hekjhedhkj");
+        for (int i = 0; i < nodes.getLength(); i++) {
+            System.out.println(new String(nodes.item(i).getTextContent()));
+        }
+    }
+    private static void startCategoryParsing() {
+        String categoryPath = "data/categories.xml";
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(new File(categoryPath));
+            document.getDocumentElement().normalize();
+            processCategories(document.getDocumentElement(), null);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
     /*
     {<category:
         name: String
@@ -35,7 +58,7 @@ public class XMLToDatabase {
     {item: String}>,
     }
      */
-    private static List<Map<Category, List<String>>> processCategories(Element element, UUID parentCategoryId) throws SQLException {
+    private static List<Map<Category, List<String>>> processCategories(Element element, UUID parentCategoryId) {
         NodeList categories = element.getElementsByTagName("category");
         List<Map<Category, List<String>>> mapList = new ArrayList<>();
         for (int i = 0; i < categories.getLength(); i++) {
@@ -61,7 +84,7 @@ public class XMLToDatabase {
         return mapList;
     }
 
-    private static List<String> processItems(Element categoryElement) throws SQLException {
+    private static List<String> processItems(Element categoryElement) {
         NodeList items = categoryElement.getElementsByTagName("item");
         List<String> list = new ArrayList<String>();
         for (int i = 0; i < items.getLength(); i++) {
@@ -71,4 +94,5 @@ public class XMLToDatabase {
         }
         return list;
     }
+
 }

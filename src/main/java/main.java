@@ -4,6 +4,7 @@ public class main {
         try {
             //importData.importDataFromFile("data/categories.xml");
             XMLToDatabase xmlToDatabase = new XMLToDatabase();
+            xmlToDatabase.main();
         } catch (Exception e) {
             System.out.println(e);
         }
