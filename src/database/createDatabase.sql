@@ -98,7 +98,10 @@ CREATE TABLE Review(
     Customer UUID,
     Product UUID,
     Stars INT,
+    Summary TEXT,
     Review TEXT,
+    Helpful INT,
+    Username VARCHAR(255),
     FOREIGN KEY (Customer) REFERENCES Customer(CustomerID),
     FOREIGN KEY (Product) REFERENCES Product(ProductID)
 );
