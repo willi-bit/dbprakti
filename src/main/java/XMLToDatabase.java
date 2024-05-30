@@ -36,6 +36,8 @@ public class XMLToDatabase {
         String storeName = startElement.getAttribute("name");
         String storeAddress = startElement.getAttribute("zip") + ", " + startElement.getAttribute("street");
         Store store = new Store(storeName, storeAddress);
+        String datePattern = "yyyy-MM-dd";
+        SimpleDateFormat  simpleDateFormat = new SimpleDateFormat(datePattern);
         for (int i = 0; i < nodes.getLength(); i++) {
             Element element = (Element) nodes.item(i);
             String name = element.getAttribute("pgroup").trim().split("\\n")[0];
@@ -52,6 +54,17 @@ public class XMLToDatabase {
                         actorsArr[j] = actor.getTextContent().trim().split("\\n")[0];
                     }
                     String actors = String.join(", ", actorsArr);
+
+
+                    Element creatorsElement = (Element) element.getElementsByTagName("creators").item(0);
+                    NodeList creatorElements = creatorsElement.getElementsByTagName("creator");
+                    String[] creatorsArr = new String[creatorElements.getLength()];
+                    for (int j = 0; j < creatorElements.getLength(); j++) {
+                        Node creator = creatorElements.item(j);
+                        creatorsArr[j] = creator.getTextContent().trim().split("\\n")[0];
+                    }
+                    String creators = String.join(", ", creatorsArr);
+
                     String director =  element.getElementsByTagName("director").item(0) != null ?
                             element.getElementsByTagName("director").item(0).getTextContent().trim().split("\\n")[0] :
                             "";
@@ -64,7 +77,7 @@ public class XMLToDatabase {
                     Integer regionCode = !(dvdspec.getElementsByTagName("regioncode").item(0).getTextContent().isEmpty()) ?
                             Integer.parseInt(dvdspec.getElementsByTagName("regioncode").item(0).getTextContent().trim().split("\\n")[0]) :
                             null;
-                    DVD dvd = new DVD(id, format, length, regionCode, actors, director);
+                    DVD dvd = new DVD(id, format, length, regionCode, actors, creators, director);
                     break;
                 case "Music":
                     String pGroup = element.getAttribute("pgroup").trim().split("\\n")[0];
@@ -98,11 +111,37 @@ public class XMLToDatabase {
                     String titleList = String.join(", ", tracksArr);
 
                     Element musicSpec = (Element) element.getElementsByTagName("musicspec").item(0);
-                    String datePattern = "yyyy-MM-dd";
-                    SimpleDateFormat  simpleDateFormat = new SimpleDateFormat(datePattern);
                     String dateText = musicSpec.getElementsByTagName("releasedate").item(0).getTextContent().trim();
-                    Date date = simpleDateFormat.parse(dateText);
-                    CD cd = new CD(musicId, artist, label, date, titleList);
+                    Date date = dateText.isEmpty() ? null : simpleDateFormat.parse(dateText);
+                    java.sql.Date actualDate = date == null ? null : new java.sql.Date(date.getTime());
+                    CD cd = new CD(musicId, artist, label, actualDate, titleList);
+                    break;
+                case "Book":
+                    String bookTitle = element.getElementsByTagName("title").item(0).getTextContent().trim().split("\\n")[0];
+                    String bookId = element.getAttribute("asin").trim();
+
+                    Element authorsElement = (Element) element.getElementsByTagName("authors").item(0);
+                    NodeList authorElements = authorsElement.getElementsByTagName("author");
+                    String[] authorsArr = new String[authorElements.getLength()];
+                    for (int j = 0; j < authorElements.getLength(); j++) {
+                        Node loopElement = authorElements.item(j);
+                        authorsArr[j] = loopElement.getTextContent().trim();
+                    }
+                    String authorList = String.join(", ", authorsArr);
+                    Element bookSpec = (Element) element.getElementsByTagName("bookSpec").item(0);
+                    Integer pages =  bookSpec.getElementsByTagName("pages").item(0).getTextContent().isEmpty() ? null: Integer.parseInt(bookSpec.getElementsByTagName("pages").item(0).getTextContent().trim());
+
+                    Element publishersElement = (Element) element.getElementsByTagName("publishers").item(0);
+                    NodeList publisherElements = publishersElement.getElementsByTagName("publisher");
+                    String[] publishersArr = new String[publisherElements.getLength()];
+                    for (int j = 0; j < publisherElements.getLength(); j++) {
+                        Node loopElement = publisherElements.item(j);
+                        publishersArr[j] = loopElement.getTextContent().trim();
+                    }
+                    String publisherList = String.join(", ", publishersArr);
+                    String bookDateText = bookSpec.getElementsByTagName("publication").item(0).getTextContent().trim();
+                    java.sql.Date bookDate = bookDateText.isEmpty() ? null : new java.sql.Date(simpleDateFormat.parse(bookDateText).getTime());
+                    Book book = new Book(bookId, authorList, publisherList, pages, bookDate);
                     break;
             }
         }

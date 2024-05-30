@@ -1,10 +1,16 @@
-import java.util.UUID;
-
 public class Book {
-    public UUID id;
+    public String id;
     public String author;
     public String publisher;
-    public int pages;
+    public Integer pages;
     public java.sql.Date releaseDate;
     public String ISBN;
+
+    public Book(String id, String author, String publisher, int pages, java.sql.Date releaseDate) {
+        this.id = id;
+        this.author = author;
+        this.publisher = publisher;
+        this.pages = pages;
+        this.releaseDate = releaseDate;
+    }
 }
