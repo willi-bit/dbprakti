@@ -16,7 +16,7 @@ CREATE TABLE Product(
     ProductID UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     Title VARCHAR(255),
     Rating FLOAT,
-    Stand INT,
+    Rank INT,
     ProductNR VARCHAR(255) UNIQUE,
     Picture VARCHAR(255),
     Category UUID,

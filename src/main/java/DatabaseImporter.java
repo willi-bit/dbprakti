@@ -1,3 +1,4 @@
+import javax.xml.catalog.Catalog;
 import java.sql.*;
 import java.util.*;
 
@@ -41,17 +42,23 @@ public class DatabaseImporter {
 
     }
 
-    public void InsertStores(){
+    public void InsertStores(Store Data){
 
         String insertStoresSQL = "INSERT INTO store (name, address, storeid) VALUES (?, ?, ?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertStoresSQL)){
 
-
+            preparedStatement.setString(1, Data.name);
+            preparedStatement.setString(2, Data.address);
+            preparedStatement.setObject(3, Data.id);
 
         } catch(SQLException e){
             System.out.println(e.getMessage());
         }
+    }
+
+    public void InsertCatalogs(List<Product> Data){
+
     }
 }
