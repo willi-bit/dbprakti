@@ -1,4 +1,3 @@
-import javax.xml.catalog.Catalog;
 import java.sql.*;
 import java.util.*;
 
@@ -32,33 +31,74 @@ public class DatabaseImporter {
             }
             preparedStatement.executeBatch();
 
-            preparedStatement.setString(1, Data.get(0).keySet().iterator().next().name);
-            preparedStatement.setObject(2, Data.get(0).keySet().iterator().next().parent);
-            preparedStatement.setObject(3, Data.get(0).keySet().iterator().next().id);
-
         } catch(SQLException e){
            System.out.println(e.getMessage());
         }
 
     }
 
-    public void InsertStores(Store Data){
+    public void InsertStore(Store store){
 
         String insertStoresSQL = "INSERT INTO store (name, address, storeid) VALUES (?, ?, ?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertStoresSQL)){
 
-            preparedStatement.setString(1, Data.name);
-            preparedStatement.setString(2, Data.address);
-            preparedStatement.setObject(3, Data.id);
+            preparedStatement.setString(1, store.name);
+            preparedStatement.setString(2, store.address);
+            preparedStatement.setObject(3, store.id);
+
+            preparedStatement.execute();
 
         } catch(SQLException e){
             System.out.println(e.getMessage());
         }
     }
 
-    public void InsertCatalogs(List<Product> Data){
+    public void InsertProduct(Product product){
+
+        String insertProductSQL = "INSERT INTO product (title, rating, rank, productnr, picture, category, productid) VALUES (?,?,?,?,?,?,?)";
+
+        try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
+            PreparedStatement preparedStatement = connection.prepareStatement(insertProductSQL)){
+
+            preparedStatement.setString(1, product.title);
+            preparedStatement.setFloat(2, product.rating);
+            preparedStatement.setInt(3, product.rank);
+            preparedStatement.setString(4, product.nr);
+            preparedStatement.setString(5, product.picture);
+            preparedStatement.setObject(6, product.category);
+            preparedStatement.setObject(7, product.id);
+
+            preparedStatement.execute();
+
+        } catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void InsertCatalog(Store store, List<Product> catalog){
+
+        String insertCatalogSQL = "INSERT INTO productcatalog (store, product, price, available, condition) VALUES (?,?,?,?,?)";
+
+        try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
+            PreparedStatement preparedStatement = connection.prepareStatement(insertCatalogSQL)){
+
+            InsertStore(store);
+            for(Product product : catalog){
+                InsertProduct(product);
+                preparedStatement.setObject(1, product.id);
+                preparedStatement.setObject(2, store.id);
+                preparedStatement.setFloat(3, (float)10.0);
+                preparedStatement.setBoolean(4, true);
+                preparedStatement.setString(5, "good");
+
+                preparedStatement.execute();
+            }
+
+        } catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
 
     }
 }
