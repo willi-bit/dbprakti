@@ -6,11 +6,12 @@ public class Book {
     public java.sql.Date releaseDate;
     public String ISBN;
 
-    public Book(String id, String author, String publisher, int pages, java.sql.Date releaseDate) {
+    public Book(String id, String author, String publisher, Integer pages, java.sql.Date releaseDate, String ISBN) {
         this.id = id;
         this.author = author;
         this.publisher = publisher;
         this.pages = pages;
         this.releaseDate = releaseDate;
+        this.ISBN = ISBN;
     }
 }

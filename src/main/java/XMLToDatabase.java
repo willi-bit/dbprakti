@@ -128,7 +128,7 @@ public class XMLToDatabase {
                         authorsArr[j] = loopElement.getTextContent().trim();
                     }
                     String authorList = String.join(", ", authorsArr);
-                    Element bookSpec = (Element) element.getElementsByTagName("bookSpec").item(0);
+                    Element bookSpec = (Element) element.getElementsByTagName("bookspec").item(0);
                     Integer pages =  bookSpec.getElementsByTagName("pages").item(0).getTextContent().isEmpty() ? null: Integer.parseInt(bookSpec.getElementsByTagName("pages").item(0).getTextContent().trim());
 
                     Element publishersElement = (Element) element.getElementsByTagName("publishers").item(0);
@@ -141,7 +141,10 @@ public class XMLToDatabase {
                     String publisherList = String.join(", ", publishersArr);
                     String bookDateText = bookSpec.getElementsByTagName("publication").item(0).getTextContent().trim();
                     java.sql.Date bookDate = bookDateText.isEmpty() ? null : new java.sql.Date(simpleDateFormat.parse(bookDateText).getTime());
-                    Book book = new Book(bookId, authorList, publisherList, pages, bookDate);
+
+                    Element isbnElement = (Element) bookSpec.getElementsByTagName("isbn").item(0);
+                    String isbn = isbnElement.getAttribute("val").trim();
+                    Book book = new Book(bookId, authorList, publisherList, pages, bookDate, isbn);
                     break;
             }
         }
