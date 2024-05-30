@@ -101,4 +101,27 @@ public class DatabaseImporter {
         }
 
     }
+
+    public void InsertReview(Review review){
+
+        String insertReviewSQL = "INSERT INTO review (reviewid, customer, product, stars, summary, review, helpful, username) VALUES (?,?,?,?,?,?,?,?)";
+
+        try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
+            PreparedStatement preparedStatement = connection.prepareStatement(insertReviewSQL)){
+
+            preparedStatement.setObject(1, review.id);
+            preparedStatement.setObject(2, review.customer);
+            preparedStatement.setObject(3, review.product);
+            preparedStatement.setInt(4, review.stars);
+            preparedStatement.setString(5, review.summary);
+            preparedStatement.setString(6, review.review);
+            preparedStatement.setInt(6, review.helpful);
+            preparedStatement.setString(7, review.username);
+
+            preparedStatement.execute();
+
+        } catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+    }
 }
