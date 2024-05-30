@@ -24,17 +24,52 @@ public class XMLToDatabase {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(new File(dresdenPath));
-            document.getDocumentElement().normalize();
             processDresden(document.getDocumentElement());
         } catch(Exception e) {
             e.printStackTrace();
         }
     }
     private static void processDresden(Element startElement) {
-        NodeList nodes = startElement.getChildNodes();
-        System.out.println("hekjhedhkj");
+        NodeList nodes = startElement.getElementsByTagName("item");
+        String storeName = startElement.getAttribute("name");
+        String storeAddress = startElement.getAttribute("zip") + ", " + startElement.getAttribute("street");
+        Store store = new Store(storeName, storeAddress);
         for (int i = 0; i < nodes.getLength(); i++) {
-            System.out.println(new String(nodes.item(i).getTextContent()));
+            Element element = (Element) nodes.item(i);
+            String name = element.getAttribute("pgroup").trim().split("\\n")[0];
+            switch (name) {
+                case "DVD": {
+                    String id =  element.getAttribute("asin").trim();
+                    String title = element.getElementsByTagName("title").item(0).getTextContent().trim().split("\\n")[0];
+                    String[] actorElements = element.getElementsByTagName("actors").item(0).getTextContent().trim().split("\\n");
+                    StringBuilder actorBuilder = new StringBuilder();
+                    for (String authorElement : actorElements) {
+                        actorBuilder.append(authorElement).append(", ");
+                    }
+                    String actors = actorBuilder.toString();
+                    String director =  element.getElementsByTagName("director").item(0) != null ?
+                            element.getElementsByTagName("director").item(0).getTextContent().trim().split("\\n")[0] :
+                            "";
+
+                    Element dvdspec = (Element) element.getElementsByTagName("dvdspec").item(0);
+                    String format = dvdspec.getElementsByTagName("format").item(0).getTextContent().trim().split("\\n")[0];
+                    Integer length = !(dvdspec.getElementsByTagName("runningtime").item(0).getTextContent().isEmpty()) ?
+                            Integer.parseInt(dvdspec.getElementsByTagName("runningtime").item(0).getTextContent().trim()) :
+                            null;
+                    Integer regionCode = !(dvdspec.getElementsByTagName("regioncode").item(0).getTextContent().isEmpty()) ?
+                            Integer.parseInt(dvdspec.getElementsByTagName("regioncode").item(0).getTextContent().trim().split("\\n")[0]) :
+                            null;
+                    DVD dvd = new DVD(id, format, length, regionCode, actors, director);
+                }
+                case "Music": {
+                    String[] actorElements = element.getElementsByTagName("actors").item(0).getTextContent().trim().split("\\n");
+                    StringBuilder actorBuilder = new StringBuilder();
+                    for (String authorElement : actorElements) {
+                        actorBuilder.append(authorElement).append(", ");
+                    }
+                    String actors = actorBuilder.toString();
+                }
+            }
         }
     }
     private static void startCategoryParsing() {
