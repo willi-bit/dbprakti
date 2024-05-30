@@ -44,7 +44,6 @@ public class XMLToDatabase {
             switch (name) {
                 case "DVD":
                     String id =  element.getAttribute("asin").trim();
-                    String title = element.getElementsByTagName("title").item(0).getTextContent().trim().split("\\n")[0];
 
                     Element actorsElement = (Element) element.getElementsByTagName("actors").item(0);
                     NodeList actorElements = actorsElement.getElementsByTagName("actor");
@@ -54,7 +53,6 @@ public class XMLToDatabase {
                         actorsArr[j] = actor.getTextContent().trim().split("\\n")[0];
                     }
                     String actors = String.join(", ", actorsArr);
-
 
                     Element creatorsElement = (Element) element.getElementsByTagName("creators").item(0);
                     NodeList creatorElements = creatorsElement.getElementsByTagName("creator");
@@ -79,6 +77,7 @@ public class XMLToDatabase {
                             null;
                     DVD dvd = new DVD(id, format, length, regionCode, actors, creators, director);
                     break;
+
                 case "Music":
                     String pGroup = element.getAttribute("pgroup").trim().split("\\n")[0];
                     String musicTitle = element.getElementsByTagName("title").item(0).getTextContent().trim().split("\\n")[0];
@@ -116,6 +115,7 @@ public class XMLToDatabase {
                     java.sql.Date actualDate = date == null ? null : new java.sql.Date(date.getTime());
                     CD cd = new CD(musicId, artist, label, actualDate, titleList);
                     break;
+
                 case "Book":
                     String bookTitle = element.getElementsByTagName("title").item(0).getTextContent().trim().split("\\n")[0];
                     String bookId = element.getAttribute("asin").trim();
@@ -147,6 +147,29 @@ public class XMLToDatabase {
                     Book book = new Book(bookId, authorList, publisherList, pages, bookDate, isbn);
                     break;
             }
+            // PRODUCT CREATION
+            String productId = element.getAttribute("asin").trim().split("\\n")[0];
+            String rank = element.getAttribute("salesrank").trim().split("\\n")[0];
+            Integer ranking = rank.isEmpty() ? null : Integer.parseInt(rank);
+            Element titleElement = (Element) element.getElementsByTagName("title").item(0);
+            String title1 = titleElement == null ? null : titleElement.getTextContent().trim().split("\\n")[0];
+            System.out.println(title1);
+
+            Element details = (Element) element.getElementsByTagName("details").item(0);
+            String image = details == null ? null : details.getAttribute("image").trim();
+
+            // name == CATEGORY
+            Product product = new Product(productId, title1, 0f, ranking, null, image, name);
+            Element priceElement = (Element) element.getElementsByTagName("price").item(0);
+            // Ist keinen Preis zu haben gültig?
+            Float price = priceElement == null ? null : priceElement.getTextContent().trim().isEmpty() ? null : Float.parseFloat(priceElement.getTextContent().trim());
+            boolean isAvailable = true;
+            if (price == null) {
+                isAvailable = false;
+            }
+            String condition = priceElement == null? null : priceElement.getAttribute("state").trim();
+
+            ProductCatalog productCatalog = new ProductCatalog(storeName + storeAddress, productId, price, isAvailable, condition);
         }
     }
     private static void startCategoryParsing() {
