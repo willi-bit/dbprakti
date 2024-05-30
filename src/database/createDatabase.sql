@@ -9,7 +9,8 @@ CREATE TABLE Category(
 ALTER TABLE Category
     ADD CONSTRAINT FKParentCategory
     FOREIGN KEY (ParentCategoryID) REFERENCES Category(CategoryID);
-
+ALTER TABLE Category
+    ADD CONSTRAINT uniqueNameParentCombination UNIQUE(Name, ParentCategoryID);
 
 CREATE TABLE Product(
     ProductID UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
