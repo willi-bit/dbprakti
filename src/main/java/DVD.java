@@ -15,6 +15,7 @@ public class DVD {
         this.length = length;
         this.regionCode = regionCode;
         this.actors = actors;
+        this.creator = creator;
         this.director = director;
     }
 }
