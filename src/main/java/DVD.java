@@ -9,7 +9,7 @@ public class DVD {
     public String creator;
     public String director;
 
-    public DVD(String id, String format, Integer length, Integer regionCode, String actors, String director) {
+    public DVD(String id, String format, Integer length, Integer regionCode, String actors, String creator, String director) {
         this.id = id;
         this.format = format;
         this.length = length;
