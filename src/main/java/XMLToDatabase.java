@@ -224,10 +224,11 @@ public class XMLToDatabase {
             List<String> list = processItems(categoryElement);
             map.put(category, list);
             mapList.add(map);
-            if (nl.getLength() > 0) {
+            if (nl.getLength() >  0) {
                 for (int j = 0; j < nl.getLength(); j++) {
                     Element newCategory = (Element) nl.item(j);
-                    processCategories(newCategory, categoryId);
+                    List<Map<Category, List<String>>> returnValue = processCategories(newCategory, categoryId);
+                    mapList.addAll(returnValue);
                 }
             }
         }
