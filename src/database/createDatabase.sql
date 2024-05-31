@@ -1,30 +1,36 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE Category(
-    CategoryID UUID PRIMARY KEY,
-    Name VARCHAR(255),
-    ParentCategoryID UUID
+    CategoryID VARCHAR(255) PRIMARY KEY,
+    Name VARCHAR(255)
 );
 
-ALTER TABLE Category
+CREATE TABLE SubCategory(
+    SubCategoryID    VARCHAR(255) PRIMARY KEY,
+    Name             VARCHAR(255),
+    ParentCategoryID VARCHAR(255)
+);
+
+ALTER TABLE SubCategory
     ADD CONSTRAINT FKParentCategory
-    FOREIGN KEY (ParentCategoryID) REFERENCES Category(CategoryID);
-ALTER TABLE Category
+        FOREIGN KEY (ParentCategoryID) REFERENCES Category(CategoryID);
+
+ALTER TABLE SubCategory
     ADD CONSTRAINT uniqueNameParentCombination UNIQUE(Name, ParentCategoryID);
 
 CREATE TABLE Product(
-    ProductID UUID PRIMARY KEY,
+    ProductID VARCHAR(255) PRIMARY KEY,
     Title VARCHAR(255),
     Rating FLOAT,
     Rank INT,
     ProductNR VARCHAR(255) UNIQUE,
     Picture VARCHAR(255),
-    Category UUID,
+    Category VARCHAR(255),
     FOREIGN KEY (Category) REFERENCES Category(CategoryID)
 );
 
 CREATE TABLE Book(
-    ProductID UUID PRIMARY KEY,
+    ProductID VARCHAR(255) PRIMARY KEY,
     Author VARCHAR(255),
     Pages INT,
     ReleaseDate DATE,
@@ -34,7 +40,7 @@ CREATE TABLE Book(
 );
 
 CREATE TABLE DVD(
-    ProductID UUID PRIMARY KEY,
+    ProductID VARCHAR(255) PRIMARY KEY,
     Format VARCHAR(255),
     Length INT,
     RegionCode INT,
@@ -45,7 +51,7 @@ CREATE TABLE DVD(
 );
 
 CREATE TABLE CD(
-    ProductID UUID PRIMARY KEY,
+    ProductID VARCHAR(255) PRIMARY KEY,
     Artist VARCHAR(255),
     Label VARCHAR(255),
     ReleaseDate DATE,
@@ -54,15 +60,18 @@ CREATE TABLE CD(
 );
 
 CREATE TABLE Store(
-    StoreID UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    StoreID VARCHAR(255) PRIMARY KEY,
     Name VARCHAR(255),
     Address TEXT
 );
 
+ALTER TABLE Store
+    ADD CONSTRAINT uniqueNameAddressCombination UNIQUE(Name, Address);
+
 CREATE TABLE ProductCatalog(
-    Store UUID,
-    Product UUID,
-    Price DECIMAL(2,2),
+    Store VARCHAR(255),
+    Product VARCHAR(255),
+    Price DECIMAL,
     Available BOOLEAN,
     Condition VARCHAR(255),
     PRIMARY KEY (Store, Product),
@@ -71,22 +80,22 @@ CREATE TABLE ProductCatalog(
 );
 
 CREATE TABLE Customer(
-    CustomerID UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    CustomerID VARCHAR(255) PRIMARY KEY,
     Name VARCHAR(255),
     Address TEXT,
     BankAccount VARCHAR(255)
 );
 
 CREATE TABLE CustomerOrder(
-    OrderID UUID PRIMARY KEY,
-    Customer UUID,
+    OrderID VARCHAR(255) PRIMARY KEY,
+    Customer VARCHAR(255),
     Date DATE,
     FOREIGN KEY (Customer) REFERENCES Customer(CustomerID)
 );
 
 CREATE TABLE OrderDetail(
-    CustomerOrder UUID,
-    Product UUID,
+    CustomerOrder VARCHAR(255),
+    Product VARCHAR(255),
     Quantity INT,
     PRIMARY KEY (CustomerOrder, Product),
     FOREIGN KEY (CustomerOrder) REFERENCES CustomerOrder(OrderID),
@@ -94,9 +103,9 @@ CREATE TABLE OrderDetail(
 );
 
 CREATE TABLE Review(
-    ReviewID UUID PRIMARY KEY,
-    Customer UUID,
-    Product UUID,
+    ReviewID VARCHAR(255) PRIMARY KEY,
+    Customer VARCHAR(255),
+    Product VARCHAR(255),
     Stars INT,
     Summary TEXT,
     Review TEXT,
@@ -107,8 +116,8 @@ CREATE TABLE Review(
 );
 
 CREATE TABLE SimilarProduct(
-    Product1 UUID,
-    Product2 UUID,
+    Product1 VARCHAR(255),
+    Product2 VARCHAR(255),
     PRIMARY KEY (Product1, Product2),
     FOREIGN KEY (Product1) REFERENCES Product(ProductID),
     FOREIGN KEY (Product2) REFERENCES Product(ProductID)

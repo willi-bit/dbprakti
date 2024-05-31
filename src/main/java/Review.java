@@ -1,9 +1,9 @@
 import java.util.UUID;
 
 public class Review {
-    UUID id;
-    UUID customer;
-    UUID product;
+    String id;
+    String customer;
+    String product;
     int stars;
     String summary;
     String review;

@@ -1,6 +1,7 @@
 import org.w3c.dom.*;
 import javax.xml.parsers.*;
 import java.io.File;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -14,7 +15,7 @@ public class XMLToDatabase {
         try {
             // Parse the XML file
             // Uncomment to start parsing categories
-            // startCategoryParsing();
+            startCategoryParsing();
             startDresdenParsing();
         } catch (Exception e) {
             e.printStackTrace();
@@ -32,6 +33,8 @@ public class XMLToDatabase {
         }
     }
     private static void processDresden(Element startElement) throws ParseException {
+        DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
+        DVD dvd = null; CD cd = null; Book book = null;
         NodeList nodes = startElement.getElementsByTagName("item");
         String storeName = startElement.getAttribute("name");
         String storeAddress = startElement.getAttribute("zip") + ", " + startElement.getAttribute("street");
@@ -75,7 +78,7 @@ public class XMLToDatabase {
                     Integer regionCode = !(dvdspec.getElementsByTagName("regioncode").item(0).getTextContent().isEmpty()) ?
                             Integer.parseInt(dvdspec.getElementsByTagName("regioncode").item(0).getTextContent().trim().split("\\n")[0]) :
                             null;
-                    DVD dvd = new DVD(id, format, length, regionCode, actors, creators, director);
+                    dvd = new DVD(id, format, length, regionCode, actors, creators, director);
                     break;
 
                 case "Music":
@@ -113,7 +116,7 @@ public class XMLToDatabase {
                     String dateText = musicSpec.getElementsByTagName("releasedate").item(0).getTextContent().trim();
                     Date date = dateText.isEmpty() ? null : simpleDateFormat.parse(dateText);
                     java.sql.Date actualDate = date == null ? null : new java.sql.Date(date.getTime());
-                    CD cd = new CD(musicId, artist, label, actualDate, titleList);
+                    cd = new CD(musicId, artist, label, actualDate, titleList);
                     break;
 
                 case "Book":
@@ -144,7 +147,7 @@ public class XMLToDatabase {
 
                     Element isbnElement = (Element) bookSpec.getElementsByTagName("isbn").item(0);
                     String isbn = isbnElement.getAttribute("val").trim();
-                    Book book = new Book(bookId, authorList, publisherList, pages, bookDate, isbn);
+                    book = new Book(bookId, authorList, publisherList, pages, bookDate, isbn);
                     break;
             }
             // PRODUCT CREATION
@@ -153,7 +156,7 @@ public class XMLToDatabase {
             Integer ranking = rank.isEmpty() ? null : Integer.parseInt(rank);
             Element titleElement = (Element) element.getElementsByTagName("title").item(0);
             String title1 = titleElement == null ? null : titleElement.getTextContent().trim().split("\\n")[0];
-            System.out.println(title1);
+            //System.out.println(title1);
 
             Element details = (Element) element.getElementsByTagName("details").item(0);
             String image = details == null ? null : details.getAttribute("image").trim();
@@ -170,6 +173,20 @@ public class XMLToDatabase {
             String condition = priceElement == null? null : priceElement.getAttribute("state").trim();
 
             ProductCatalog productCatalog = new ProductCatalog(storeName + storeAddress, productId, price, isAvailable, condition);
+            /*
+            dbImporter.InsertProduct(product);
+            switch (name){
+                case "DVD":
+                    dbImporter.InsertDVD(dvd);
+                    break;
+                case "CD":
+                    dbImporter.InsertCD(cd);
+                    break;
+                case "Bool":
+                    dbImporter.InsertBook(book);
+                    break;
+            }
+            dbImporter.InsertCatalog(productCatalog);*/
         }
     }
     private static void startCategoryParsing() {
@@ -193,7 +210,8 @@ public class XMLToDatabase {
     {item: String}>,
     }
      */
-    private static List<Map<Category, List<String>>> processCategories(Element element, UUID parentCategoryId) {
+    private static List<Map<Category, List<String>>> processCategories(Element element, String parentCategoryId) {
+        DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
         NodeList categories = element.getElementsByTagName("category");
         List<Map<Category, List<String>>> mapList = new ArrayList<>();
         for (int i = 0; i < categories.getLength(); i++) {
@@ -201,7 +219,7 @@ public class XMLToDatabase {
             Element categoryElement = (Element) categories.item(i);
             NodeList nl = categoryElement.getElementsByTagName("category");
             String categoryName = categoryElement.getTextContent().trim().split("\\n")[0]; // Extract the category name
-            UUID categoryId = UUID.randomUUID();
+            String categoryId = UUID.randomUUID().toString();
             Category category = new Category(categoryName, categoryId, parentCategoryId);
             List<String> list = processItems(categoryElement);
             map.put(category, list);
@@ -213,9 +231,12 @@ public class XMLToDatabase {
                 }
             }
         }
+        /*
         for(Map<Category, List<String>> map : mapList) {
                 System.out.println(map.keySet().iterator().next().name + ": " + map.values().iterator().next().toString());
         }
+        */
+        dbImporter.InsertCategories(mapList);
         return mapList;
     }
 
