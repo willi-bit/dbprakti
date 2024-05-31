@@ -278,53 +278,7 @@ public class XMLToDatabase {
             System.out.println(mapElement.getKey().name + ": " + mapElement.getValue());
             counter++;
         }
-            /*
-            if (nl.getLength() >  0) {
-                for (int j = 0; j < nl.getLength(); j++) {
-                    Element newCategory = (Element) nl.item(j);
-                    if (newCategory.getParentNode() != categoryElement) {
-                        count++;
-                        //System.out.println("Vati: " + newCategory.getParentNode().getTextContent() + "? " + ca);
-                        continue;
-                    }
-                    List<Map<Category, List<String>>> returnValue = proccessSubCategory(mapList, newCategory, categoryId, count);
-                    mapList.addAll(returnValue);
-                }
-            }
-             */
-        /*
-        for(Map<Category, List<String>> map : mapList) {
-                System.out.println(map.keySet().iterator().next().name + ": " + map.values().iterator().next().toString());
-        }
-        */
         return map;
-    }
-
-    private static List<Map<Category, List<String>>> proccessSubCategory(List<Map<Category, List<String>>> currentList, Element element, String parentCategoryId, int count) {
-        List<Map<Category, List<String>>> mapList = new ArrayList<>();
-        Element children = (Element) element.getChildNodes();
-        NodeList categories = children.getElementsByTagName("category");
-        for (int i = 0; i < categories.getLength(); i++) {
-            Map<Category, List<String>> map = new HashMap<>();
-            // Item Liste wird nicht benötigt, aber gleiche Struktur wird genutzt
-            Element categoryElement = (Element) categories.item(i);
-            String categoryId = UUID.randomUUID().toString();
-            Element childrenCategories = (Element) element.getChildNodes();
-            NodeList furtherCategories = childrenCategories.getElementsByTagName("category");
-            String categoryName = categoryElement.getTextContent().trim().split("\\n")[0];
-            Category category = new Category(categoryName, categoryId, parentCategoryId);
-            List<String> list = new ArrayList<>();
-            map.put(category, list);
-            mapList.add(map);
-            for (int j = 0; j < furtherCategories.getLength(); j++) {
-                count++;
-                Element newCategory = (Element) furtherCategories.item(j);
-                if (newCategory.getParentNode() != categoryElement) {
-                    continue;
-                }
-            }
-        }
-        return mapList;
     }
 
     private static List<String> processItems(Element categoryElement) {
