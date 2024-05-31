@@ -211,7 +211,6 @@ public class XMLToDatabase {
     }
      */
     private static List<Map<Category, List<String>>> processCategories(Element element, String parentCategoryId) {
-        DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
         NodeList categories = element.getElementsByTagName("category");
         List<Map<Category, List<String>>> mapList = new ArrayList<>();
         for (int i = 0; i < categories.getLength(); i++) {
@@ -227,7 +226,7 @@ public class XMLToDatabase {
             if (nl.getLength() >  0) {
                 for (int j = 0; j < nl.getLength(); j++) {
                     Element newCategory = (Element) nl.item(j);
-                    List<Map<Category, List<String>>> returnValue = processCategories(newCategory, categoryId);
+                    List<Map<Category, List<String>>> returnValue = proccessSubCategory(newCategory, categoryId);
                     mapList.addAll(returnValue);
                 }
             }
@@ -237,7 +236,33 @@ public class XMLToDatabase {
                 System.out.println(map.keySet().iterator().next().name + ": " + map.values().iterator().next().toString());
         }
         */
-        dbImporter.InsertCategories(mapList);
+        return mapList;
+    }
+    private static List<Map<Category, List<String>>> proccessSubCategory(Element element, String parentCategoryId) {
+        List<Map<Category, List<String>>> mapList = new ArrayList<>();
+        NodeList categories = element.getElementsByTagName("category");
+        if (categories.getLength() == 0) {
+            System.out.println("hehe");
+        }
+        for (int i = 0; i < categories.getLength(); i++) {
+            Map<Category, List<String>> map = new HashMap<>();
+            // Item Liste wird nicht benötigt, aber gleiche Struktur wird genutzt
+            Element categoryElement = (Element) categories.item(i);
+            String categoryId = UUID.randomUUID().toString();
+            NodeList furtherCategories = categoryElement.getElementsByTagName("category");
+            String categoryName = categoryElement.getTextContent().trim().split("\\n")[0];
+            Category category = new Category(categoryName, categoryId, parentCategoryId);
+            List<String> list = new ArrayList<>();
+            map.put(category, list);
+            mapList.add(map);
+            if (categoryName == null || categoryName.isEmpty()) {
+                continue;
+            }
+            for (int j = 0; j < furtherCategories.getLength(); j++) {
+                List<Map<Category, List<String>>> retList = proccessSubCategory(categoryElement, categoryId);
+                mapList.addAll(retList);
+            }
+        }
         return mapList;
     }
 
