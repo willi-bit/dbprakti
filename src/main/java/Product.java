@@ -1,4 +1,4 @@
-public class Product {
+public class Product implements Comparable<Product> {
     String id;
     String title;
     float rating;
@@ -13,6 +13,9 @@ public class Product {
         this.rank = rank;
         this.nr = nr;
         this.picture = picture;
-
+    }
+    @Override
+    public int compareTo(Product o) {
+        return this.id.compareTo(o.id);
     }
 }
