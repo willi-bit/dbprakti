@@ -2,11 +2,10 @@ import java.util.UUID;
 
 public class Review {
     String id;
-    String customer;
     String product;
-    int stars;
+    int rating;
     String summary;
-    String review;
+    String content;
     int helpful;
     String username;
 }
