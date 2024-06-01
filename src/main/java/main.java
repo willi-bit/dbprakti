@@ -20,6 +20,16 @@ public class main {
             Map<Category, List<String>> categories = xmlToDatabase.getCategories();
 
             dbImporter.InsertCategories(categories);
+            for (Map.Entry<Category, List<String>> entry : categories.entrySet()) {
+                Category category = entry.getKey();
+
+                dbImporter.InsertProductCategoryRelation(category, entry.getValue());
+            }
+
+            scriptReader.close();
+            scriptReader = new BufferedReader(new FileReader("src/database/insertReviews.sql"));
+            dbCreator.runScript(scriptReader);
+            scriptReader.close();
 
         } catch (Exception e) {
             System.out.println(e);

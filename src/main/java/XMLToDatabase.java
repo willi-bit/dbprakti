@@ -44,6 +44,7 @@ public class XMLToDatabase {
     }
     private void processDresden(Element startElement) throws ParseException {
         DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
+        int counter = 0; int counterDVD = 0; int counterCD = 0; int counterBook = 0;
         DVD dvd = null; CD cd = null; Book book = null;
         NodeList nodes = startElement.getElementsByTagName("item");
         String storeName = startElement.getAttribute("name");
@@ -183,22 +184,30 @@ public class XMLToDatabase {
             }
             String condition = priceElement == null? null : priceElement.getAttribute("state").trim();
 
-            ProductCatalog productCatalog = new ProductCatalog(storeName + storeAddress, productId, price, isAvailable, condition);
+            ProductCatalog productCatalog = new ProductCatalog(store.id, productId, price, isAvailable, condition);
 
             dbImporter.InsertProduct(product);
+            counter++;
             switch (name){
                 case "DVD":
+                    counterDVD++;
                     dbImporter.InsertDVD(dvd);
                     break;
-                case "CD":
+                case "Music":
+                    counterCD++;
                     dbImporter.InsertCD(cd);
                     break;
-                case "Bool":
+                case "Book":
+                    counterBook++;
                     dbImporter.InsertBook(book);
                     break;
             }
             dbImporter.InsertCatalog(productCatalog);
         }
+        System.out.println(counter);
+        System.out.println(counterDVD);
+        System.out.println(counterCD);
+        System.out.println(counterBook);
     }
     private void startCategoryParsing() {
         String categoryPath = "data/categories.xml";
