@@ -12,9 +12,15 @@ import java.util.*;
 
 public class XMLToDatabase {
 
-    String leipzigPath = "data/leipzig_transformed.xml";
-    String reviewPath = "data/reviews.csv";
-    public static void main() {
+    private String leipzigPath = "data/leipzig_transformed.xml";
+    private String reviewPath = "data/reviews.csv";
+    private Map<Category, List<String>> categories;
+
+    public Map<Category, List<String>> getCategories(){
+        return categories;
+    }
+
+    public void main() {
 
         try {
             // Parse the XML file
@@ -25,7 +31,7 @@ public class XMLToDatabase {
             e.printStackTrace();
         }
     }
-    private static void startDresdenParsing() {
+    private void startDresdenParsing() {
         String dresdenPath = "data/dresden.xml";
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -36,13 +42,14 @@ public class XMLToDatabase {
             e.printStackTrace();
         }
     }
-    private static void processDresden(Element startElement) throws ParseException {
+    private void processDresden(Element startElement) throws ParseException {
         DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
         DVD dvd = null; CD cd = null; Book book = null;
         NodeList nodes = startElement.getElementsByTagName("item");
         String storeName = startElement.getAttribute("name");
         String storeAddress = startElement.getAttribute("zip") + ", " + startElement.getAttribute("street");
         Store store = new Store(storeName, storeAddress);
+        dbImporter.InsertStore(store);
         String datePattern = "yyyy-MM-dd";
         SimpleDateFormat  simpleDateFormat = new SimpleDateFormat(datePattern);
         for (int i = 0; i < nodes.getLength(); i++) {
@@ -166,7 +173,7 @@ public class XMLToDatabase {
             String image = details == null ? null : details.getAttribute("image").trim();
 
             // name == CATEGORY
-            Product product = new Product(productId, title1, 0f, ranking, null, image, name);
+            Product product = new Product(productId, title1, 0f, ranking, null, image);
             Element priceElement = (Element) element.getElementsByTagName("price").item(0);
             // Ist keinen Preis zu haben gültig?
             Float price = priceElement == null ? null : priceElement.getTextContent().trim().isEmpty() ? null : Float.parseFloat(priceElement.getTextContent().trim());
@@ -177,7 +184,7 @@ public class XMLToDatabase {
             String condition = priceElement == null? null : priceElement.getAttribute("state").trim();
 
             ProductCatalog productCatalog = new ProductCatalog(storeName + storeAddress, productId, price, isAvailable, condition);
-            /*
+
             dbImporter.InsertProduct(product);
             switch (name){
                 case "DVD":
@@ -190,63 +197,23 @@ public class XMLToDatabase {
                     dbImporter.InsertBook(book);
                     break;
             }
-            dbImporter.InsertCatalog(productCatalog);*/
+            dbImporter.InsertCatalog(productCatalog);
         }
     }
-    private static void startCategoryParsing() {
+    private void startCategoryParsing() {
         String categoryPath = "data/categories.xml";
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(new File(categoryPath));
             document.getDocumentElement().normalize();
-            //test();
-            processCategories(document.getDocumentElement(), null, 0);
+            this.categories = processCategories(document.getDocumentElement(), null, 0);
         } catch(Exception e) {
             e.printStackTrace();
         }
     }
-    /*
-    {<category:
-        name: String
-        parentCategory: UUID,
-        id: UUID
-    ,
-    {item: String}>,
-    }
-     */
-    private static void test() throws IOException, SAXException, ParserConfigurationException {
-        String xml = "<add job=\"351\">\n" +
-                "    <tag>foobar</tag>\n" +
-                "    <tag>foobar2</tag>\n" +
-                "</add>";
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        ByteArrayInputStream bis = new ByteArrayInputStream(xml.getBytes());
-        Document doc = db.parse(bis);
-        Node n = doc.getFirstChild();
-        NodeList nl = n.getChildNodes();
-        Node an,an2;
 
-        for (int i=0; i < nl.getLength(); i++) {
-            an = nl.item(i);
-            if(an.getNodeType()==Node.ELEMENT_NODE) {
-                NodeList nl2 = an.getChildNodes();
-
-                for(int i2=0; i2<nl2.getLength(); i2++) {
-                    an2 = nl2.item(i2);
-                    // DEBUG PRINTS
-                    System.out.println(an2.getNodeName() + ": type (" + an2.getNodeType() + "):");
-                    if(an2.hasChildNodes()) System.out.println(an2.getFirstChild().getTextContent());
-                    if(an2.hasChildNodes()) System.out.println(an2.getFirstChild().getNodeValue());
-                    System.out.println(an2.getTextContent());
-                    System.out.println(an2.getNodeValue());
-                }
-            }
-        }
-    }
-    private static Map<Category, List<String>> processCategories(Element element, String parentCategoryId, int count) {
-        System.out.println("MAINCAT");
+    private Map<Category, List<String>> processCategories(Element element, String parentCategoryId, int count) {
         NodeList categories = element.getElementsByTagName("category");
         Map<Category, List<String>> map = new HashMap<>();
         for (int i = 0; i < categories.getLength(); i++) {
@@ -281,7 +248,7 @@ public class XMLToDatabase {
         return map;
     }
 
-    private static List<String> processItems(Element categoryElement) {
+    private List<String> processItems(Element categoryElement) {
         NodeList items = categoryElement.getElementsByTagName("item");
         List<String> list = new ArrayList<String>();
         for (int i = 0; i < items.getLength(); i++) {
@@ -291,5 +258,4 @@ public class XMLToDatabase {
         }
         return list;
     }
-
 }

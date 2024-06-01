@@ -14,26 +14,27 @@ public class DatabaseImporter {
         this.password = pw;
     }
 
-    public void InsertCategories(List<Map<Category, List<String>>> Data){
+    public void InsertCategories(Map<Category, List<String>> categories){
 
-        if (Data == null){return;}
-        String insertCategorySQL = "INSERT INTO category (name, categoryid) VALUES (?,?)";
+        String insertCategorySQL = "INSERT INTO category (name, categoryid, parentcategory) VALUES (?,?,?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertCategorySQL)){
             List<Category> subCategories = new ArrayList<>();
-            for (Map<Category, List<String>> entry : Data) {
-                for (Map.Entry<Category, List<String>> categoryEntry : entry.entrySet()) {
-                    Category category = categoryEntry.getKey();
-                    if(category.parent == null){
-                        preparedStatement.setString(1, category.name);
-                        preparedStatement.setString(2, category.id);
-                        preparedStatement.addBatch();
-                    } else {
-                        subCategories.add(category);
-                    }
+
+            for (Map.Entry<Category, List<String>> entry : categories.entrySet()) {
+                Category category = entry.getKey();
+
+                if(category.parent == null){
+                    preparedStatement.setString(1, category.name);
+                    preparedStatement.setString(2, category.id);
+                    preparedStatement.setNull(3, java.sql.Types.VARCHAR);
+                    preparedStatement.addBatch();
+                } else {
+                    subCategories.add(category);
                 }
             }
+
             preparedStatement.executeBatch();
 
             for (Category category : subCategories) {
@@ -48,14 +49,14 @@ public class DatabaseImporter {
 
     public void InsertSubCategories(Category category){
 
-        String insertCategorySQL = "INSERT INTO subcategory (name, parentcategoryid, subcategoryid) VALUES (?,?,?)";
+        String insertCategorySQL = "INSERT INTO category (name, categoryid, parentcategory) VALUES (?,?,?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertCategorySQL)){
 
             preparedStatement.setString(1, category.name);
-            preparedStatement.setString(2, category.parent);
-            preparedStatement.setString(3, category.id);
+            preparedStatement.setString(2, category.id);
+            preparedStatement.setString(3, category.parent);
 
             preparedStatement.execute();
 
@@ -156,8 +157,7 @@ public class DatabaseImporter {
 
     public void InsertProduct(Product product){
 
-        if (product == null){return;}
-        String insertProductSQL = "INSERT INTO product (title, rating, rank, productnr, picture, category, productid) VALUES (?,?,?,?,?,?,?)";
+        String insertProductSQL = "INSERT INTO product (title, rating, rank, productnr, picture, productid) VALUES (?,?,?,?,?,?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertProductSQL)){
@@ -171,8 +171,7 @@ public class DatabaseImporter {
             }
             preparedStatement.setString(4, product.nr);
             preparedStatement.setString(5, product.picture);
-            preparedStatement.setString(6, product.category);
-            preparedStatement.setString(7, product.id);
+            preparedStatement.setString(6, product.id);
 
             preparedStatement.execute();
 
