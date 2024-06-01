@@ -27,10 +27,11 @@ public class main {
             }
 
             scriptReader.close();
+            /*
             scriptReader = new BufferedReader(new FileReader("src/database/insertReviews.sql"));
             dbCreator.runScript(scriptReader);
             scriptReader.close();
-
+            */
         } catch (Exception e) {
             System.out.println(e);
         }
