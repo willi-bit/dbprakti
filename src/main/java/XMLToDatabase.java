@@ -27,19 +27,16 @@ public class XMLToDatabase {
             // Parse the XML file
             // Uncomment to start parsing categories
             //startCategoryParsing();
-            Set<ProductSimilars> products = new LinkedHashSet<>();
+            List<ProductSimilars> products = new ArrayList<>();
             startDresdenParsing(products);
-            int counto = 0;
             for (ProductSimilars p : products) {
-                counto += p.similars.size();
+                System.out.println(p.product.title + ": " + p.similars.size());
             }
-            System.out.println(counto);
-            System.out.println(products.size());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    private void startDresdenParsing(Set<ProductSimilars> products) throws Exception {
+    private void startDresdenParsing(List<ProductSimilars> products) throws Exception {
         String dresdenPath = "data/dresden.xml";
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -50,7 +47,7 @@ public class XMLToDatabase {
             e.printStackTrace();
         }
     }
-    private void processDresden(Element startElement, Set<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
+    private void processDresden(Element startElement, List<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
         int counter = 0;
         DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "123");
         DVD dvd = null; CD cd = null; Book book = null;
@@ -186,12 +183,9 @@ public class XMLToDatabase {
             Element details = (Element) element.getElementsByTagName("details").item(0);
             String image = details == null ? null : details.getAttribute("image").trim();
             if (!products.isEmpty()) {
-                ProductSimilars ps = products.stream().skip(products.size()-1).findFirst().get();
-                System.out.println(ps.product.title);
-                System.out.println(ps.similars.size());
+                ProductSimilars ps = products.get(products.size()-1);
                 List<String> al = new ArrayList<>(similars);
                 ps.similars = al;
-                System.out.println(ps.similars.size());
             }
             // name == CATEGORY
             Product product = new Product(productId, title1, 0f, ranking, null, image);
