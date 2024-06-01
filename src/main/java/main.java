@@ -12,6 +12,7 @@ public class main {
             ScriptRunner dbCreator = new ScriptRunner(dbConnection);
             Reader scriptReader = new BufferedReader(new FileReader("src/database/createDatabase.sql"));
             dbCreator.runScript(scriptReader);
+            scriptReader.close();
 
             XMLToDatabase xmlToDatabase = new XMLToDatabase();
             DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
@@ -25,13 +26,10 @@ public class main {
 
                 dbImporter.InsertProductCategoryRelation(category, entry.getValue());
             }
+            CSVParser csvParser = new CSVParser();
+            List<Review> reviews= csvParser.ParseCSV();
+            dbImporter.InsertReviews(reviews);
 
-            scriptReader.close();
-            /*
-            scriptReader = new BufferedReader(new FileReader("src/database/insertReviews.sql"));
-            dbCreator.runScript(scriptReader);
-            scriptReader.close();
-            */
         } catch (Exception e) {
             System.out.println(e);
         }

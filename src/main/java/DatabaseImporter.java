@@ -113,126 +113,182 @@ public class DatabaseImporter {
         }
     }
 
-    public void InsertBook(Book book){
+    public void InsertBook(List<Book> books){
 
         String insertBookSQL = "INSERT INTO book (author, pages, releasedate, isbn, publisher, productid) VALUES (?, ?, ?, ?, ?, ?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertBookSQL)){
-
-            preparedStatement.setString(1, book.author);
-            if(book.pages != null){
-                preparedStatement.setInt(2, book.pages);
-            } else {
-                preparedStatement.setNull(2, java.sql.Types.INTEGER);
+            for(Book book : books){
+                preparedStatement.setString(1, book.author);
+                if(book.pages != null){
+                    preparedStatement.setInt(2, book.pages);
+                } else {
+                    preparedStatement.setNull(2, java.sql.Types.INTEGER);
+                }
+                preparedStatement.setDate(3, book.releaseDate);
+                preparedStatement.setString(4, book.ISBN);
+                preparedStatement.setString(5, book.publisher);
+                preparedStatement.setString(6, book.id);
+                preparedStatement.addBatch();
             }
-            preparedStatement.setDate(3, book.releaseDate);
-            preparedStatement.setString(4, book.ISBN);
-            preparedStatement.setString(5, book.publisher);
-            preparedStatement.setString(6, book.id);
-
-            preparedStatement.execute();
+            preparedStatement.executeBatch();
 
         } catch(SQLException e){
             System.out.println(e.getMessage());
         }
     }
 
-    public void InsertDVD(DVD dvd){
+    public void InsertDVD(List<DVD> dvds){
 
         String insertDVDSQL = "INSERT INTO dvd (format, length, regioncode, actors, creator, director, productid) VALUES (?,?,?,?,?,?,?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertDVDSQL)){
 
-            preparedStatement.setString(1, dvd.format);
-            preparedStatement.setInt(2, dvd.length);
-            if (dvd.regionCode != null){
-                preparedStatement.setInt(3, dvd.regionCode);
-            } else {
-                preparedStatement.setNull(3, java.sql.Types.INTEGER);
+            for(DVD dvd : dvds){
+                preparedStatement.setString(1, dvd.format);
+                if (dvd.length != null){
+                    preparedStatement.setInt(2, dvd.length);
+                } else {
+                    preparedStatement.setNull(2, java.sql.Types.INTEGER);
+                }
+                if (dvd.regionCode != null){
+                    preparedStatement.setInt(3, dvd.regionCode);
+                } else {
+                    preparedStatement.setNull(3, java.sql.Types.INTEGER);
+                }
+                preparedStatement.setString(4, dvd.actors);
+                preparedStatement.setString(5, dvd.creator);
+                preparedStatement.setString(6, dvd.director);
+                preparedStatement.setString(7, dvd.id);
+                preparedStatement.addBatch();
             }
-            preparedStatement.setString(4, dvd.actors);
-            preparedStatement.setString(5, dvd.creator);
-            preparedStatement.setString(6, dvd.director);
-            preparedStatement.setString(7, dvd.id);
-
-            preparedStatement.execute();
+            preparedStatement.executeBatch();
 
         } catch(SQLException e){
             System.out.println(e.getMessage());
         }
     }
 
-    public void InsertCD(CD cd){
+    public void InsertCD(List<CD> cds){
 
-        if (cd == null){return;}
         String insertCDSQL = "INSERT INTO cd (artist, label, releasedate, titlelist, productid) VALUES (?,?,?,?,?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertCDSQL)){
-
-            preparedStatement.setString(1, cd.artist);
-            preparedStatement.setString(2, cd.label);
-            preparedStatement.setDate(3, cd.releaseDate);
-            preparedStatement.setString(4, cd.titleList);
-            preparedStatement.setString(5, cd.id);
-
-            preparedStatement.execute();
+            for(CD cd : cds){
+                preparedStatement.setString(1, cd.artist);
+                preparedStatement.setString(2, cd.label);
+                preparedStatement.setDate(3, cd.releaseDate);
+                preparedStatement.setString(4, cd.titleList);
+                preparedStatement.setString(5, cd.id);
+                preparedStatement.addBatch();
+            }
+            preparedStatement.executeBatch();
 
         } catch(SQLException e){
             System.out.println(e.getMessage());
         }
     }
 
-    public void InsertProduct(Product product){
+    public void InsertProduct(Set<ProductSimilars> products){
 
         String insertProductSQL = "INSERT INTO product (title, rating, rank, productnr, picture, productid) VALUES (?,?,?,?,?,?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertProductSQL)){
 
-            System.out.println(product.title);
-            preparedStatement.setString(1, product.title);
-            preparedStatement.setFloat(2, product.rating);
-            if (product.rank != null){
-                preparedStatement.setInt(3, product.rank);
-            } else {
-                preparedStatement.setNull(3, java.sql.Types.INTEGER);
+            for(ProductSimilars entry : products){
+                Product product = entry.product;
+                preparedStatement.setString(1, product.title);
+                preparedStatement.setFloat(2, product.rating);
+                if (product.rank != null){
+                    preparedStatement.setInt(3, product.rank);
+                } else {
+                    preparedStatement.setNull(3, java.sql.Types.INTEGER);
+                }
+                preparedStatement.setString(4, product.nr);
+                preparedStatement.setString(5, product.picture);
+                preparedStatement.setString(6, product.id);
+                preparedStatement.execute();
+                InsertSimilarProducts(entry);
             }
-            preparedStatement.setString(4, product.nr);
-            preparedStatement.setString(5, product.picture);
-            preparedStatement.setString(6, product.id);
-
-            preparedStatement.execute();
 
         } catch(SQLException e){
             System.out.println(e.getMessage());
         }
     }
 
-    public void InsertCatalog(ProductCatalog catalog){
+    public void InsertSimilarProducts(ProductSimilars entry){
+
+        String insertProductSQL = "INSERT INTO similarproduct (product1, product2) VALUES (?,?)";
+
+        try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
+            PreparedStatement preparedStatement = connection.prepareStatement(insertProductSQL)){
+
+            for(String similarProduct : entry.similars){
+                preparedStatement.setString(1, entry.product.id);
+                preparedStatement.setString(2, similarProduct);
+                preparedStatement.addBatch();
+            }
+            preparedStatement.executeBatch();
+
+        } catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void InsertCatalog(List<ProductCatalog> catalogs){
 
         String insertCatalogSQL = "INSERT INTO productcatalog (store, product, price, available, condition) VALUES (?,?,?,?,?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertCatalogSQL)){
-            preparedStatement.setString(1, catalog.storeId);
-            preparedStatement.setString(2, catalog.productId);
-            if(catalog.price != null){
-                preparedStatement.setFloat(3, catalog.price);
-            } else {
-                preparedStatement.setNull(3, java.sql.Types.FLOAT);
+
+            for(ProductCatalog catalog : catalogs){
+
+                preparedStatement.setString(1, catalog.storeId);
+                preparedStatement.setString(2, catalog.productId);
+                if(catalog.price != null){
+                    preparedStatement.setFloat(3, catalog.price);
+                } else {
+                    preparedStatement.setNull(3, java.sql.Types.FLOAT);
+                }
+                preparedStatement.setBoolean(4, catalog.isAvailable);
+                preparedStatement.setString(5, catalog.condition);
+                preparedStatement.addBatch();
             }
-            preparedStatement.setBoolean(4, catalog.isAvailable);
-            preparedStatement.setString(5, catalog.condition);
-
-            preparedStatement.execute();
-
+            preparedStatement.executeBatch();
 
         } catch(SQLException e){
             System.out.println(e.getMessage());
         }
 
+    }
+
+    public void InsertReviews(List<Review> reviews){
+
+        String insertREviewsSQL = "INSERT INTO review (reviewid, product, stars, summary, review, helpful, username, customer) VALUES (?,?,?,?,?,?,?,?)";
+
+        try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
+            PreparedStatement preparedStatement = connection.prepareStatement(insertREviewsSQL)){
+
+            for(Review review : reviews){
+                preparedStatement.setString(1, review.id);
+                preparedStatement.setString(2, review.product);
+                preparedStatement.setInt(3, review.stars);
+                preparedStatement.setString(4, review.summary);
+                preparedStatement.setString(5, review.content);
+                preparedStatement.setInt(6, review.helpful);
+                preparedStatement.setString(7, review.username);
+                preparedStatement.setNull(8, java.sql.Types.VARCHAR);
+                preparedStatement.addBatch();
+            }
+            preparedStatement.executeBatch();
+
+        } catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
     }
 }

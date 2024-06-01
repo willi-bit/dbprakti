@@ -14,10 +14,8 @@ import java.util.*;
 
 public class XMLToDatabase {
 
-    private String leipzigPath = "data/leipzig_transformed.xml";
-    private String reviewPath = "data/reviews.csv";
     private Map<Category, List<String>> categories;
-
+    Set<ProductSimilars> products = new LinkedHashSet<>();
     public Map<Category, List<String>> getCategories(){
         return categories;
     }
@@ -26,15 +24,15 @@ public class XMLToDatabase {
         try {
             // Parse the XML file
             // Uncomment to start parsing categories
-            //startCategoryParsing();
-            Set<ProductSimilars> products = new LinkedHashSet<>();
-            startDresdenParsing(products);
+            //Set<ProductSimilars> products = new LinkedHashSet<>();
+
             int counto = 0;
             for (ProductSimilars p : products) {
                 counto += p.similars.size();
             }
-            System.out.println(counto);
-            System.out.println(products.size());
+            startCategoryParsing();
+            startLeipzigParsing(this.products);
+            startDresdenParsing(this.products);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -45,15 +43,29 @@ public class XMLToDatabase {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(new File(dresdenPath));
-            processDresden(document.getDocumentElement(), products);
+            processStore(document.getDocumentElement(), products);
         } catch(Exception e) {
             e.printStackTrace();
         }
     }
-    private void processDresden(Element startElement, Set<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
-        int counter = 0;
-        DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "123");
-        DVD dvd = null; CD cd = null; Book book = null;
+    private void startLeipzigParsing(Set<ProductSimilars> products) throws Exception {
+        String leipzigPath = "data/leipzig_transformed.xml";
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(new File(leipzigPath));
+            processStore(document.getDocumentElement(), products);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void processStore(Element startElement,Set<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
+        DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
+        DVD dvd = null; CD cd = null; Book book = null; int counter = 0;
+        List<Book> books = new ArrayList<>();
+        List<CD> cds = new ArrayList<>();
+        List<DVD> dvds = new ArrayList<>();
+        List<ProductCatalog> catalogs = new ArrayList<>();
         NodeList nodes = startElement.getElementsByTagName("item");
         String storeName = startElement.getAttribute("name");
         String storeAddress = startElement.getAttribute("zip") + ", " + startElement.getAttribute("street");
@@ -187,13 +199,9 @@ public class XMLToDatabase {
             String image = details == null ? null : details.getAttribute("image").trim();
             if (!products.isEmpty()) {
                 ProductSimilars ps = products.stream().skip(products.size()-1).findFirst().get();
-                System.out.println(ps.product.title);
-                System.out.println(ps.similars.size());
                 List<String> al = new ArrayList<>(similars);
                 ps.similars = al;
-                System.out.println(ps.similars.size());
             }
-            // name == CATEGORY
             Product product = new Product(productId, title1, 0f, ranking, null, image);
             List<String> nl = new ArrayList<>();
             ProductSimilars newProduct = new ProductSimilars(product, nl);
@@ -208,35 +216,27 @@ public class XMLToDatabase {
             String condition = priceElement == null? null : priceElement.getAttribute("state").trim();
 
             ProductCatalog productCatalog = new ProductCatalog(store.id, productId, price, isAvailable, condition);
-            if(element.getTextContent().trim().split("\\n")[0].equals("Simply Red - Cuba! (NTSC)")) {
-                System.out.println(similars);
-            }
             similars.clear();
             counter++;
-            //dbImporter.InsertProduct(product);
-            /*
+            //catalogs.add(productCatalog);
+
             switch (name){
                 case "DVD":
-                    counterDVD++;
-                    dbImporter.InsertDVD(dvd);
+                    dvds.add(dvd);
                     break;
                 case "Music":
-                    counterCD++;
-                    dbImporter.InsertCD(cd);
+                    cds.add(cd);
                     break;
                 case "Book":
-                    counterBook++;
-                    dbImporter.InsertBook(book);
+                    books.add(book);
                     break;
             }
-            dbImporter.InsertCatalog(productCatalog);
-
-             */
         }
-        //System.out.println(counter);
-        //System.out.println(counterDVD);
-        //System.out.println(counterCD);
-        //System.out.println(counterBook);
+        dbImporter.InsertProduct(this.products);
+        dbImporter.InsertCD(cds);
+        dbImporter.InsertDVD(dvds);
+        dbImporter.InsertBook(books);
+        dbImporter.InsertCatalog(catalogs);
     }
     private void startCategoryParsing() {
         String categoryPath = "data/categories.xml";
@@ -280,7 +280,6 @@ public class XMLToDatabase {
         int counter = 0;
         for (Map.Entry<Category, List<String>> mapElement : map.entrySet()) {
             if (counter > 20) break;
-            System.out.println(mapElement.getKey().name + ": " + mapElement.getValue());
             counter++;
         }
         return map;
