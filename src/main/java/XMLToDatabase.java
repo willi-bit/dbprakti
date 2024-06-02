@@ -24,15 +24,14 @@ public class XMLToDatabase {
         try {
             // Parse the XML file
             // Uncomment to start parsing categories
-            //Set<ProductSimilars> products = new LinkedHashSet<>();
-
             int counto = 0;
             for (ProductSimilars p : products) {
-                counto += p.similars.size();
+                System.out.println(p.product.title + ": " + p.similars.size());
             }
             startCategoryParsing();
             startLeipzigParsing(this.products);
             startDresdenParsing(this.products);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -61,6 +60,9 @@ public class XMLToDatabase {
     }
     private void processStore(Element startElement,List<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
         DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
+    private void processDresden(Element startElement, List<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
+        int counter = 0;
+        DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "123");
         DVD dvd = null; CD cd = null; Book book = null;
         List<Book> books = new ArrayList<>();
         List<CD> cds = new ArrayList<>();
@@ -200,7 +202,8 @@ public class XMLToDatabase {
             Element details = (Element) element.getElementsByTagName("details").item(0);
             String image = details == null ? null : details.getAttribute("image").trim();
             if (!products.isEmpty()) {
-                ProductSimilars ps = products.stream().skip(products.size()-1).findFirst().get();
+
+                ProductSimilars ps = products.get(products.size()-1);
                 List<String> al = new ArrayList<>(similars);
                 ps.similars = al;
             }
