@@ -1,5 +1,6 @@
 import java.sql.*;
 import java.util.*;
+import java.io.*;
 
 public class DatabaseImporter {
 
@@ -7,10 +8,20 @@ public class DatabaseImporter {
     private final String user;
     private final String password;
 
+    public File errors = new File("data/errors.txt");
+    public FileWriter writer;
+
     public DatabaseImporter(String url, String user, String pw) {
         this.url = url;
         this.user = user;
         this.password = pw;
+        try {
+            errors.delete();
+            errors.createNewFile();
+            writer = new FileWriter(errors);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public void InsertCategories(Map<Category, List<String>> categories){
@@ -34,13 +45,16 @@ public class DatabaseImporter {
             }
 
             preparedStatement.executeBatch();
-
             for (Category category : subCategories) {
                 InsertParentCategory(category);
             }
 
         } catch(SQLException e){
-           System.out.println(e.getMessage());
+           try{
+               writer.write(e.getMessage());
+           }catch(IOException ioe){
+               System.out.println(e.getMessage());
+           }
         }
 
     }
@@ -59,17 +73,24 @@ public class DatabaseImporter {
             preparedStatement.execute();
 
         } catch(SQLException e){
-            System.out.println(e.getMessage());
+            try{
+                writer.write(e.getMessage());
+            }catch(IOException ioe){
+                System.out.println(e.getMessage());
+            }
             if(e.getSQLState().equals("23505")){
                 try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
                     PreparedStatement preparedStatement = connection.prepareStatement(deleteDuplicateSQL)){
 
                     preparedStatement.setString(1, category.id);
                     preparedStatement.execute();
-                    System.out.println("DELETED DUPLICATE");
 
                 } catch (SQLException ex){
-                    System.out.println(ex.getMessage());
+                    try{
+                        writer.write(e.getMessage());
+                    }catch(IOException ioe){
+                        System.out.println(e.getMessage());
+                    }
                 }
             }
         }
@@ -91,7 +112,11 @@ public class DatabaseImporter {
             preparedStatement.executeBatch();
 
         } catch(SQLException e){
-            System.out.println(e.getMessage());
+            try{
+                writer.write(e.getMessage());
+            }catch(IOException ioe){
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -109,7 +134,11 @@ public class DatabaseImporter {
             preparedStatement.execute();
 
         } catch(SQLException e){
-            System.out.println(e.getMessage());
+            try{
+                writer.write(e.getMessage());
+            }catch(IOException ioe){
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -126,16 +155,20 @@ public class DatabaseImporter {
                 } else {
                     preparedStatement.setNull(2, java.sql.Types.INTEGER);
                 }
-                preparedStatement.setDate(3, book.releaseDate);
+                //preparedStatement.setDate(3, book.releaseDate);
+                preparedStatement.setNull(3, java.sql.Types.DATE);
                 preparedStatement.setString(4, book.ISBN);
                 preparedStatement.setString(5, book.publisher);
                 preparedStatement.setString(6, book.id);
                 preparedStatement.addBatch();
             }
             preparedStatement.executeBatch();
-
         } catch(SQLException e){
-            System.out.println(e.getMessage());
+            try{
+                writer.write(e.getMessage());
+            }catch(IOException ioe){
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -167,7 +200,11 @@ public class DatabaseImporter {
             preparedStatement.executeBatch();
 
         } catch(SQLException e){
-            System.out.println(e.getMessage());
+            try{
+                writer.write(e.getMessage());
+            }catch(IOException ioe){
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -188,11 +225,15 @@ public class DatabaseImporter {
             preparedStatement.executeBatch();
 
         } catch(SQLException e){
-            System.out.println(e.getMessage());
+            try{
+                writer.write(e.getMessage());
+            }catch(IOException ioe){
+                System.out.println(e.getMessage());
+            }
         }
     }
 
-    public void InsertProduct(Set<ProductSimilars> products){
+    public void InsertProduct(List<ProductSimilars> products){
 
         String insertProductSQL = "INSERT INTO product (title, rating, rank, productnr, picture, productid) VALUES (?,?,?,?,?,?)";
 
@@ -211,12 +252,19 @@ public class DatabaseImporter {
                 preparedStatement.setString(4, product.nr);
                 preparedStatement.setString(5, product.picture);
                 preparedStatement.setString(6, product.id);
-                preparedStatement.execute();
+                preparedStatement.addBatch();
+            }
+            preparedStatement.executeBatch();
+            for(ProductSimilars entry : products){
                 InsertSimilarProducts(entry);
             }
 
         } catch(SQLException e){
-            System.out.println(e.getMessage());
+            try{
+                writer.write(e.getMessage());
+            }catch(IOException ioe){
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -235,7 +283,11 @@ public class DatabaseImporter {
             preparedStatement.executeBatch();
 
         } catch(SQLException e){
-            System.out.println(e.getMessage());
+            try{
+                writer.write(e.getMessage());
+            }catch(IOException ioe){
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -262,7 +314,11 @@ public class DatabaseImporter {
             preparedStatement.executeBatch();
 
         } catch(SQLException e){
-            System.out.println(e.getMessage());
+            try{
+                writer.write(e.getMessage());
+            }catch(IOException ioe){
+                System.out.println(e.getMessage());
+            }
         }
 
     }
@@ -288,7 +344,11 @@ public class DatabaseImporter {
             preparedStatement.executeBatch();
 
         } catch(SQLException e){
-            System.out.println(e.getMessage());
+            try{
+                writer.write(e.getMessage());
+            }catch(IOException ioe){
+                System.out.println(e.getMessage());
+            }
         }
     }
 }

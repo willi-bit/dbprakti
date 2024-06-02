@@ -15,7 +15,7 @@ import java.util.*;
 public class XMLToDatabase {
 
     private Map<Category, List<String>> categories;
-    Set<ProductSimilars> products = new LinkedHashSet<>();
+    List<ProductSimilars> products = new ArrayList<>();
     public Map<Category, List<String>> getCategories(){
         return categories;
     }
@@ -37,7 +37,7 @@ public class XMLToDatabase {
             e.printStackTrace();
         }
     }
-    private void startDresdenParsing(Set<ProductSimilars> products) throws Exception {
+    private void startDresdenParsing(List<ProductSimilars> products) throws Exception {
         String dresdenPath = "data/dresden.xml";
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -48,7 +48,7 @@ public class XMLToDatabase {
             e.printStackTrace();
         }
     }
-    private void startLeipzigParsing(Set<ProductSimilars> products) throws Exception {
+    private void startLeipzigParsing(List<ProductSimilars> products) throws Exception {
         String leipzigPath = "data/leipzig_transformed.xml";
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -59,9 +59,9 @@ public class XMLToDatabase {
             e.printStackTrace();
         }
     }
-    private void processStore(Element startElement,Set<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
+    private void processStore(Element startElement,List<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
         DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
-        DVD dvd = null; CD cd = null; Book book = null; int counter = 0;
+        DVD dvd = null; CD cd = null; Book book = null;
         List<Book> books = new ArrayList<>();
         List<CD> cds = new ArrayList<>();
         List<DVD> dvds = new ArrayList<>();
@@ -117,6 +117,7 @@ public class XMLToDatabase {
                             Integer.parseInt(dvdspec.getElementsByTagName("regioncode").item(0).getTextContent().trim().split("\\n")[0]) :
                             null;
                     dvd = new DVD(id, format, length, regionCode, actors, creators, director);
+                    dvds.add(dvd);
                     break;
 
                 case "Music":
@@ -155,8 +156,8 @@ public class XMLToDatabase {
                     Date date = dateText.isEmpty() ? null : simpleDateFormat.parse(dateText);
                     java.sql.Date actualDate = date == null ? null : new java.sql.Date(date.getTime());
                     cd = new CD(musicId, artist, label, actualDate, titleList);
+                    cds.add(cd);
                     break;
-
                 case "Book":
                     String bookTitle = element.getElementsByTagName("title").item(0).getTextContent().trim().split("\\n")[0];
                     String bookId = element.getAttribute("asin").trim();
@@ -186,6 +187,7 @@ public class XMLToDatabase {
                     Element isbnElement = (Element) bookSpec.getElementsByTagName("isbn").item(0);
                     String isbn = isbnElement.getAttribute("val").trim();
                     book = new Book(bookId, authorList, publisherList, pages, bookDate, isbn);
+                    books.add(book);
                     break;
             }
             // PRODUCT CREATION
@@ -217,20 +219,7 @@ public class XMLToDatabase {
 
             ProductCatalog productCatalog = new ProductCatalog(store.id, productId, price, isAvailable, condition);
             similars.clear();
-            counter++;
-            //catalogs.add(productCatalog);
-
-            switch (name){
-                case "DVD":
-                    dvds.add(dvd);
-                    break;
-                case "Music":
-                    cds.add(cd);
-                    break;
-                case "Book":
-                    books.add(book);
-                    break;
-            }
+            catalogs.add(productCatalog);
         }
         dbImporter.InsertProduct(this.products);
         dbImporter.InsertCD(cds);

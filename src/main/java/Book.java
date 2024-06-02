@@ -14,4 +14,8 @@ public class Book {
         this.releaseDate = releaseDate;
         this.ISBN = ISBN;
     }
+
+    public String toString(){
+        return id + " " + author + " " + publisher + " " + pages + " " + ISBN;
+    }
 }
