@@ -9,12 +9,13 @@ import java.util.List;
 import java.util.UUID;
 
 public class CSVParser {
-    public static void run() {
+    public List<Review> ParseCSV() {
+        List<Review> reviews = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new FileReader("data/reviews.csv"))) {
             String[] lineInArray;
-            List<Review> reviews = new ArrayList<>();
+
             while ((lineInArray = reader.readNext()) != null) {
-                Review review = new Review();
+
                 String productId = lineInArray[0];
                 if (productId.equals("product")) {
                     continue;
@@ -25,17 +26,13 @@ public class CSVParser {
                 String summary = lineInArray[5];
                 String content = lineInArray[6];
 
-                review.id = UUID.randomUUID().toString();
-                review.product = productId;
-                review.username = userName;
-                review.helpful = helpfulRating.isEmpty() ? -1 : Integer.parseInt(helpfulRating);
-                review.rating = Integer.parseInt(rating);
-                review.summary = summary;
-                review.content = content;
+                int helpful = helpfulRating.isEmpty() ? -1 : Integer.parseInt(helpfulRating);
+                Review review = new Review(UUID.randomUUID().toString(), productId, Integer.parseInt(rating), summary, content, helpful, userName);
                 reviews.add(review);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return reviews;
     }
 }

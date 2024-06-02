@@ -6,13 +6,13 @@ import org.apache.ibatis.jdbc.ScriptRunner;
 public class main {
     public static void main(String[] args) {
         System.out.println("STARTING");
-        try {
-
-            Connection dbConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
+        try (Connection dbConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres")){
+            /*
             ScriptRunner dbCreator = new ScriptRunner(dbConnection);
             Reader scriptReader = new BufferedReader(new FileReader("src/database/createDatabase.sql"));
             dbCreator.runScript(scriptReader);
-
+            scriptReader.close();
+            */
             XMLToDatabase xmlToDatabase = new XMLToDatabase();
             DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
 
@@ -25,13 +25,11 @@ public class main {
 
                 dbImporter.InsertProductCategoryRelation(category, entry.getValue());
             }
+            CSVParser csvParser = new CSVParser();
+            List<Review> reviews= csvParser.ParseCSV();
+            dbImporter.InsertReviews(reviews);
+            dbImporter.writer.close();
 
-            scriptReader.close();
-            /*
-            scriptReader = new BufferedReader(new FileReader("src/database/insertReviews.sql"));
-            dbCreator.runScript(scriptReader);
-            scriptReader.close();
-            */
         } catch (Exception e) {
             System.out.println(e);
         }
