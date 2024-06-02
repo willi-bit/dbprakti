@@ -15,27 +15,52 @@ FROM
     DVD;
 
 --Nennen Sie die 5 besten Produkte jeder Hauptkategorie sortiert nach dem durchschnittlichem Rating.
-WITH ProductRatings AS (
+WITH MainCategories AS (
     SELECT
-        p.ProductID, p.Title, p.Category, AVG(r.Stars) AS AvgRating
+        CategoryID,
+        Name
     FROM
-        Product p
-            LEFT JOIN
-        Review r ON p.ProductID = r.Product
-    GROUP BY
-        p.ProductID
-)
+        Category
+    WHERE
+        ParentCategory IS NULL
+),
+     ProductRatings AS (
+         SELECT
+             r.Product,
+             AVG(r.Stars) AS AverageRating
+         FROM
+             Review r
+         GROUP BY
+             r.Product
+     ),
+     RankedProducts AS (
+         SELECT
+             p.ProductID,
+             p.Title,
+             mc.Name AS CategoryName,
+             pr.AverageRating,
+             ROW_NUMBER() OVER (PARTITION BY mc.Name ORDER BY pr.AverageRating DESC) AS Rank
+         FROM
+             Product p
+                 JOIN
+             ProductCategories pc ON p.ProductID = pc.Product
+                 JOIN
+             MainCategories mc ON pc.Category = mc.CategoryID
+                 JOIN
+             ProductRatings pr ON p.ProductID = pr.Product
+     )
 SELECT
-    pr.ProductID, pr.Title, c.Name AS Category, pr.AvgRating
+    ProductID,
+    Title,
+    CategoryName,
+    AverageRating
 FROM
-    ProductRatings pr
-        JOIN
-    Category c ON pr.Category = c.CategoryID
+    RankedProducts
 WHERE
-    c.ParentCategoryID IS NULL
+    Rank <= 5
 ORDER BY
-    pr.AvgRating DESC
-LIMIT 5;
+    CategoryName,
+    Rank;
 
 --Für welche Produkte gibt es im Moment kein Angebot?
 SELECT
@@ -82,16 +107,10 @@ WHERE
     r.Product IS NULL;
 
 --Nennen Sie alle Rezensenten, die mehr als 10 Rezensionen geschrieben haben.
-SELECT
-    c.Name, COUNT(r.ReviewID) AS ReviewCount
-FROM
-    Customer c
-        JOIN
-    Review r ON c.CustomerID = r.Customer
-GROUP BY
-    c.CustomerID
-HAVING
-    COUNT(r.ReviewID) > 10;
+SELECT Username
+FROM Review
+GROUP BY Username
+HAVING COUNT(ReviewID) > 10;
 
 --Geben Sie eine duplikatfreie und alphabetisch sortierte Liste der Namen aller Buchautoren an, die auch an DVDs oder Musik-CSs beteiligt sind.
 SELECT DISTINCT
@@ -102,7 +121,7 @@ WHERE
     EXISTS (
         SELECT 1
         FROM DVD d
-        WHERE d.Creator = b.Author OR d.Director = b.Author
+        WHERE d.Actors LIKE '%' || b.Author || '%' OR d.Creator = b.Author OR d.Director = b.Author
     )
    OR EXISTS (
     SELECT 1
@@ -119,20 +138,15 @@ FROM
     CD;
 
 --Für welche Produkte gibt es ähnliche Produkte in einer anderen Hauptkategorie?
-SELECT
-    sp.Product1, sp.Product2
-FROM
-    SimilarProduct sp
-        JOIN
-    Product p1 ON sp.Product1 = p1.ProductID
-        JOIN
-    Product p2 ON sp.Product2 = p2.ProductID
-        JOIN
-    Category c1 ON p1.Category = c1.CategoryID
-        JOIN
-    Category c2 ON p2.Category = c2.CategoryID
-WHERE
-    c1.ParentCategoryID IS NULL AND c2.ParentCategoryID IS NULL AND c1.CategoryID <> c2.CategoryID;
+SELECT DISTINCT p1.ProductID, p1.Title AS ProductTitle, c1.Name AS CategoryName, p2.ProductID AS SimilarProductID, p2.Title AS SimilarProductTitle, c2.Name AS SimilarCategoryName
+FROM Product p1
+         JOIN ProductCategories pc1 ON p1.ProductID = pc1.Product
+         JOIN Category c1 ON pc1.Category = c1.CategoryID
+         JOIN SimilarProduct sp ON p1.ProductID = sp.Product1
+         JOIN Product p2 ON sp.Product2 = p2.ProductID
+         JOIN ProductCategories pc2 ON p2.ProductID = pc2.Product
+         JOIN Category c2 ON pc2.Category = c2.CategoryID
+WHERE c1.CategoryID <> c2.CategoryID;
 
 --Wieviele Kunden haben ein Produkt doppelt gekauft?
 SELECT
@@ -175,9 +189,10 @@ HAVING
     COUNT(DISTINCT pc.Store) = (SELECT COUNT(*) FROM Store);
 
 --In wieviel Prozent der Fälle der Frage 13 gibt es in Leipzig das preiswerteste Angebot?
-WITH AllStoresProducts AS (
+WITH ProductsInAllStores AS (
     SELECT
-        p.ProductID, p.Title
+        p.ProductID,
+        p.Title
     FROM
         Product p
             JOIN
@@ -187,40 +202,24 @@ WITH AllStoresProducts AS (
     HAVING
         COUNT(DISTINCT pc.Store) = (SELECT COUNT(*) FROM Store)
 ),
-     LeipzigCheapest AS (
+     LowestPricePerProduct AS (
          SELECT
-             p.ProductID, MIN(pc.Price) AS MinPrice
+             pc.Product,
+             MIN(pc.Price) AS LowestPrice
          FROM
-             Product p
-                 JOIN
-             ProductCatalog pc ON p.ProductID = pc.Product
-                 JOIN
-             Store s ON pc.Store = s.StoreID
-         WHERE
-             s.Address LIKE '%Leipzig%'
+             ProductCatalog pc
          GROUP BY
-             p.ProductID
-     ),
-     CheapestOverall AS (
-         SELECT
-             p.ProductID, MIN(pc.Price) AS MinPrice
-         FROM
-             Product p
-                 JOIN
-             ProductCatalog pc ON p.ProductID = pc.Product
-         GROUP BY
-             p.ProductID
+             pc.Product
      )
 SELECT
-    CASE
-        WHEN COUNT(DISTINCT a.ProductID) > 0 THEN
-            COUNT(DISTINCT lc.ProductID) * 100.0 / COUNT(DISTINCT a.ProductID)
-        ELSE
-            0
-        END AS PercentCheapestInLeipzig
+    COUNT(*)
 FROM
-    LeipzigCheapest lc
+    ProductsInAllStores pis
         JOIN
-    AllStoresProducts a ON lc.ProductID = a.ProductID
+    ProductCatalog pc ON pis.ProductID = pc.Product
         JOIN
-    CheapestOverall co ON lc.ProductID = co.ProductID AND lc.MinPrice = co.MinPrice;
+    Store s ON pc.Store = s.StoreID
+        JOIN
+    LowestPricePerProduct lpp ON pc.Product = lpp.Product
+WHERE
+    s.Name = 'Leipzig' AND pc.Price = lpp.LowestPrice;
