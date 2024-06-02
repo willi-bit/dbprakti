@@ -299,7 +299,7 @@ public class DatabaseImporter {
      */
     public void InsertProduct(ProductSimilars entry){
 
-        String insertProductSQL = "INSERT INTO product (title, rating, rank, productnr, picture, productid) VALUES (?,?,?,?,?,?)";
+        String insertProductSQL = "INSERT INTO product (title, rating, rank, picture, productid) VALUES (?,?,?,?,?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertProductSQL)){
@@ -312,9 +312,8 @@ public class DatabaseImporter {
             } else {
                 preparedStatement.setNull(3, java.sql.Types.INTEGER);
             }
-            preparedStatement.setString(4, product.nr);
-            preparedStatement.setString(5, product.picture);
-            preparedStatement.setString(6, product.id);
+            preparedStatement.setString(4, product.picture);
+            preparedStatement.setString(5, product.id);
             preparedStatement.executeUpdate();
 
             InsertSimilarProducts(entry);

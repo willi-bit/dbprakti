@@ -158,7 +158,6 @@ public class XMLToDatabase {
                             null;
                     dvd = new DVD(id, format, length, regionCode, actors, creators, director);
                     dvds.add(dvd);
-                    System.out.println(storeName+": "+dvd.id);
                     break;
 
                 case "Music":
@@ -168,10 +167,6 @@ public class XMLToDatabase {
                     Element artistsElement = (Element) element.getElementsByTagName("artists").item(0);
                     NodeList artistElements = artistsElement.getElementsByTagName("artist");
                     String[] artistsArr = new String[artistElements.getLength()];
-                    if (artistElements.getLength() == 0) {
-                        System.out.println("HURENSOHN");
-                        continue;
-                    }
                     for (int j = 0; j < artistElements.getLength(); j++) {
                         Node actor = artistElements.item(j);
                         String elementName = actor.getTextContent().trim().split("\\n")[0];
@@ -181,6 +176,10 @@ public class XMLToDatabase {
                         artistsArr[j] = elementName;
                     }
                     String artist = String.join(", ", artistsArr);
+                    if (artist.length() < 2) {
+                        System.out.println("RAUS MIT DIR artist" + musicId);
+                        artist = null;
+                    }
 
                     Element labelsElement = (Element) element.getElementsByTagName("labels").item(0);
                     NodeList labelElements = labelsElement.getElementsByTagName("label");
@@ -195,6 +194,7 @@ public class XMLToDatabase {
                     }
                     String label = String.join(", ", labelsArr);
 
+
                     Element tracksElement = (Element) element.getElementsByTagName("tracks").item(0);
                     NodeList trackElements = tracksElement.getElementsByTagName("title");
                     String[] tracksArr = new String[trackElements.getLength()];
@@ -208,6 +208,7 @@ public class XMLToDatabase {
                     }
                     String titleList = String.join(", ", tracksArr);
 
+
                     Element musicSpec = (Element) element.getElementsByTagName("musicspec").item(0);
                     String dateText = musicSpec.getElementsByTagName("releasedate").item(0).getTextContent().trim();
                     Date date = dateText.isEmpty() ? null : simpleDateFormat.parse(dateText);
@@ -215,6 +216,7 @@ public class XMLToDatabase {
                     cd = new CD(musicId, artist, label, actualDate, titleList);
                     cds.add(cd);
                     break;
+
                 case "Book":
                     String bookTitle = element.getElementsByTagName("title").item(0).getTextContent().trim().split("\\n")[0];
                     String bookId = element.getAttribute("asin").trim();
@@ -246,7 +248,8 @@ public class XMLToDatabase {
                         publishersArr[j] = elementName;
                     }
                     String publisherList = String.join(", ", publishersArr);
-                    String bookDateText = bookSpec.getElementsByTagName("publication").item(0).getTextContent().trim();
+                    Element bookDateElement = (Element) bookSpec.getElementsByTagName("publication").item(0);
+                    String bookDateText = bookDateElement.getAttribute("date").trim();
                     java.sql.Date bookDate = bookDateText.isEmpty() ? null : new java.sql.Date(simpleDateFormat.parse(bookDateText).getTime());
 
                     Element isbnElement = (Element) bookSpec.getElementsByTagName("isbn").item(0);
@@ -270,7 +273,7 @@ public class XMLToDatabase {
                 List<String> al = new ArrayList<>(similars);
                 ps.similars = al;
             }
-            Product product = new Product(productId, title1, 0f, ranking, null, image);
+            Product product = new Product(productId, title1, 0f, ranking, image);
             List<String> nl = new ArrayList<>();
             ProductSimilars newProduct = new ProductSimilars(product, nl);
             products.add(newProduct);
