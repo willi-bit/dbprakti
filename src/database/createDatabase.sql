@@ -12,10 +12,9 @@ ALTER TABLE Category
 
 CREATE TABLE Product(
     ProductID VARCHAR(255) PRIMARY KEY,
-    Title VARCHAR(255),
-    Rating FLOAT,
-    Rank INT,
-    ProductNR VARCHAR(255) UNIQUE,
+    Title VARCHAR(255) NOT NULL,
+    Rating FLOAT NOT NULL,
+    Rank INT NOT NULL,
     Picture VARCHAR(255)
 );
 
@@ -29,11 +28,11 @@ CREATE TABLE ProductCategories(
 
 CREATE TABLE Book(
     ProductID VARCHAR(255) PRIMARY KEY,
-    Author VARCHAR(255),
-    Pages INT,
-    ReleaseDate DATE,
-    ISBN VARCHAR(255) UNIQUE,
-    Publisher VARCHAR(255),
+    Author VARCHAR(255) NOT NULL,
+    Pages INT NOT NULl,
+    ReleaseDate DATE NOT NULL,
+    ISBN VARCHAR(255) UNIQUE NOT NULL,
+    Publisher VARCHAR(255)NOT NULL,
     FOREIGN KEY (ProductID) REFERENCES Product(ProductID)
 );
 
@@ -50,10 +49,10 @@ CREATE TABLE DVD(
 
 CREATE TABLE CD(
     ProductID VARCHAR(255) PRIMARY KEY,
-    Artist VARCHAR(255),
-    Label VARCHAR(255),
-    ReleaseDate DATE,
-    TitleList TEXT,
+    Artist VARCHAR(255)  NOT NULL,
+    Label VARCHAR(255) NOT NULL,
+    ReleaseDate DATE NOT NULL,
+    TitleList TEXT NOT NULL,
     FOREIGN KEY (ProductID) REFERENCES Product(ProductID)
 );
 
@@ -102,11 +101,11 @@ CREATE TABLE Review(
     ReviewID VARCHAR(255) PRIMARY KEY,
     Customer VARCHAR(255),
     Product VARCHAR(255),
-    Stars INT,
-    Summary TEXT,
-    Review TEXT,
-    Helpful INT,
-    Username VARCHAR(255),
+    Stars INT NOT NULL,
+    Summary TEXT NOT NULL,
+    Review TEXT NOT NULL,
+    Helpful INT NOT NULL,
+    Username VARCHAR(255) NOT NULL,
     FOREIGN KEY (Customer) REFERENCES Customer(CustomerID),
     FOREIGN KEY (Product) REFERENCES Product(ProductID)
 );
