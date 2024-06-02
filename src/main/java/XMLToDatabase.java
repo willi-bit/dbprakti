@@ -60,9 +60,6 @@ public class XMLToDatabase {
     }
     private void processStore(Element startElement,List<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
         DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
-    private void processDresden(Element startElement, List<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
-        int counter = 0;
-        DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "123");
         DVD dvd = null; CD cd = null; Book book = null;
         List<Book> books = new ArrayList<>();
         List<CD> cds = new ArrayList<>();
@@ -224,11 +221,20 @@ public class XMLToDatabase {
             similars.clear();
             catalogs.add(productCatalog);
         }
-        dbImporter.InsertProduct(this.products);
-        dbImporter.InsertCD(cds);
-        dbImporter.InsertDVD(dvds);
-        dbImporter.InsertBook(books);
-        dbImporter.InsertCatalog(catalogs);
+        for(ProductSimilars sim : products){
+            dbImporter.InsertProduct(sim);
+        }
+        for(DVD d : dvds){
+            dbImporter.InsertDVD(d);
+        }for(CD c : cds){
+            dbImporter.InsertCD(c);
+        }
+        for(Book b : books){
+            dbImporter.InsertBook(b);
+        }
+        for(ProductCatalog cat : catalogs){
+            dbImporter.InsertCatalog(cat);
+        }
     }
     private void startCategoryParsing() {
         String categoryPath = "data/categories.xml";
