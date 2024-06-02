@@ -11,6 +11,12 @@ public class DatabaseImporter {
     public File errors = new File("data/errors.txt");
     public FileWriter writer;
 
+    /**
+     * Constructor
+     * @param url local postgres database url
+     * @param user local postgres user
+     * @param pw local postgres pw
+     */
     public DatabaseImporter(String url, String user, String pw) {
         this.url = url;
         this.user = user;
@@ -24,6 +30,10 @@ public class DatabaseImporter {
         }
     }
 
+    /**
+     * inserts categories
+     * @param categories Map(category, list of sub-categories
+     */
     public void InsertCategories(Map<Category, List<String>> categories){
 
         String insertCategorySQL = "INSERT INTO category (name, categoryid, parentcategory) VALUES (?,?,?)";
@@ -59,6 +69,10 @@ public class DatabaseImporter {
 
     }
 
+    /**
+     * updates category row with parent category
+     * @param category category to update
+     */
     public void InsertParentCategory(Category category){
 
         String updateParentSQL = "UPDATE category SET parentcategory = ? WHERE categoryid = ?";
@@ -94,6 +108,11 @@ public class DatabaseImporter {
         }
     }
 
+    /**
+     * inserts productcategories relation
+     * @param category category
+     * @param products all products with category
+     */
     public void InsertProductCategoryRelation(Category category, List<String> products){
 
         String insertRelationSQL = "INSERT INTO productcategories (product, category) VALUES (?,?)";
@@ -118,6 +137,10 @@ public class DatabaseImporter {
         }
     }
 
+    /**
+     * inserts store
+     * @param store store
+     */
     public void InsertStore(Store store){
 
         String insertStoresSQL = "INSERT INTO store (name, address, storeid) VALUES (?, ?, ?)";
@@ -140,6 +163,10 @@ public class DatabaseImporter {
         }
     }
 
+    /**
+     * inserts book
+     * @param book book
+     */
     public void InsertBook(Book book){
 
         String insertBookSQL = "INSERT INTO book (author, pages, releasedate, isbn, publisher, productid) VALUES (?, ?, ?, ?, ?, ?)";
@@ -168,6 +195,10 @@ public class DatabaseImporter {
         }
     }
 
+    /**
+     * inserts dvd
+     * @param dvd dvd
+     */
     public void InsertDVD(DVD dvd){
 
         String insertDVDSQL = "INSERT INTO dvd (format, length, regioncode, actors, creator, director, productid) VALUES (?,?,?,?,?,?,?)";
@@ -201,6 +232,10 @@ public class DatabaseImporter {
         }
     }
 
+    /**
+     * inserts cd
+     * @param cd cd
+     */
     public void InsertCD(CD cd){
 
         String insertCDSQL = "INSERT INTO cd (artist, label, releasedate, titlelist, productid) VALUES (?,?,?,?,?)";
@@ -224,6 +259,10 @@ public class DatabaseImporter {
         }
     }
 
+    /**
+     * inserts product
+     * @param entry product + all similar products
+     */
     public void InsertProduct(ProductSimilars entry){
 
         String insertProductSQL = "INSERT INTO product (title, rating, rank, productnr, picture, productid) VALUES (?,?,?,?,?,?)";
@@ -255,6 +294,10 @@ public class DatabaseImporter {
         }
     }
 
+    /**
+     * inserts similarproduct relation
+     * @param entry product + all similar products
+     */
     public void InsertSimilarProducts(ProductSimilars entry){
 
         String insertProductSQL = "INSERT INTO similarproduct (product1, product2) VALUES (?,?)";
@@ -277,6 +320,10 @@ public class DatabaseImporter {
         }
     }
 
+    /**
+     * inserts productcatalog
+     * @param catalog productcatalog
+     */
     public void InsertCatalog(ProductCatalog catalog){
 
         String insertCatalogSQL = "INSERT INTO productcatalog (store, product, price, available, condition) VALUES (?,?,?,?,?)";
@@ -305,6 +352,10 @@ public class DatabaseImporter {
 
     }
 
+    /**
+     * inserts review
+     * @param review review
+     */
     public void InsertReviews(Review review){
 
         String insertREviewsSQL = "INSERT INTO review (reviewid, product, stars, summary, review, helpful, username, customer) VALUES (?,?,?,?,?,?,?,?)";

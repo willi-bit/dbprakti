@@ -9,6 +9,11 @@ import java.util.List;
 import java.util.UUID;
 
 public class CSVParser {
+
+    /**
+     * reads reviews from csv
+     * @return list of reviews
+     */
     public List<Review> ParseCSV() {
         List<Review> reviews = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new FileReader("data/reviews.csv"))) {

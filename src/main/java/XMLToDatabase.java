@@ -36,6 +36,7 @@ public class XMLToDatabase {
             e.printStackTrace();
         }
     }
+
     private void startDresdenParsing(List<ProductSimilars> products) throws Exception {
         String dresdenPath = "data/dresden.xml";
         try {
@@ -58,6 +59,14 @@ public class XMLToDatabase {
             e.printStackTrace();
         }
     }
+
+    /**
+     * parses xml
+     * @param startElement start element of xml
+     * @param products list of store items
+     * @throws ParseException
+     * @throws UnsupportedEncodingException
+     */
     private void processStore(Element startElement,List<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
         DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
         DVD dvd = null; CD cd = null; Book book = null;
@@ -249,6 +258,13 @@ public class XMLToDatabase {
         }
     }
 
+    /**
+     * parses xml
+     * @param element
+     * @param parentCategoryId id of parent category
+     * @param count
+     * @return map of categories and associated sub-categories
+     */
     private Map<Category, List<String>> processCategories(Element element, String parentCategoryId, int count) {
         NodeList categories = element.getElementsByTagName("category");
         Map<Category, List<String>> map = new HashMap<>();
