@@ -118,3 +118,24 @@ CREATE TABLE SimilarProduct(
     FOREIGN KEY (Product1) REFERENCES Product(ProductID),
     FOREIGN KEY (Product2) REFERENCES Product(ProductID)
 );
+
+CREATE OR REPLACE FUNCTION update_product_rating()
+RETURNS TRIGGER AS $$
+DECLARE
+avg_rating FLOAT;
+BEGIN
+SELECT AVG(Stars) INTO avg_rating
+FROM Review
+WHERE Product = NEW.Product;
+
+UPDATE Product
+SET Rating = avg_rating
+WHERE ProductID = NEW.Product;
+
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_product_rating_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON Review
+    FOR EACH ROW EXECUTE FUNCTION update_product_rating();
