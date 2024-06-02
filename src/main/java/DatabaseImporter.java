@@ -7,6 +7,7 @@ public class DatabaseImporter {
     private final String url;
     private final String user;
     private final String password;
+    public Map<String, Integer> ErrorCount = new HashMap<>();
 
     public File errors = new File("data/errors.txt");
     public FileWriter writer;
@@ -24,7 +25,7 @@ public class DatabaseImporter {
         try {
             errors.delete();
             errors.createNewFile();
-            writer = new FileWriter(errors);
+            writer = new FileWriter(errors, true);
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
@@ -37,7 +38,6 @@ public class DatabaseImporter {
     public void InsertCategories(Map<Category, List<String>> categories){
 
         String insertCategorySQL = "INSERT INTO category (name, categoryid, parentcategory) VALUES (?,?,?)";
-
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertCategorySQL)){
             List<Category> subCategories = new ArrayList<>();
@@ -62,11 +62,15 @@ public class DatabaseImporter {
         } catch(SQLException e){
            try{
                writer.write(e.getMessage());
+               if (!ErrorCount.containsKey(e.getSQLState())){
+                   ErrorCount.put(e.getSQLState(), 1);
+               } else {
+                   ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+               }
            }catch(IOException ioe){
                System.out.println(e.getMessage());
            }
         }
-
     }
 
     /**
@@ -89,6 +93,11 @@ public class DatabaseImporter {
         } catch(SQLException e){
             try{
                 writer.write(e.getMessage());
+                if (!ErrorCount.containsKey(e.getSQLState())){
+                    ErrorCount.put(e.getSQLState(), 1);
+                } else {
+                    ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+                }
             }catch(IOException ioe){
                 System.out.println(e.getMessage());
             }
@@ -131,6 +140,11 @@ public class DatabaseImporter {
         } catch(SQLException e){
             try{
                 writer.write(e.getMessage());
+                if (!ErrorCount.containsKey(e.getSQLState())){
+                    ErrorCount.put(e.getSQLState(), 1);
+                } else {
+                    ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+                }
             }catch(IOException ioe){
                 System.out.println(e.getMessage());
             }
@@ -157,6 +171,11 @@ public class DatabaseImporter {
         } catch(SQLException e){
             try{
                 writer.write(e.getMessage());
+                if (!ErrorCount.containsKey(e.getSQLState())){
+                    ErrorCount.put(e.getSQLState(), 1);
+                } else {
+                    ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+                }
             }catch(IOException ioe){
                 System.out.println(e.getMessage());
             }
@@ -189,6 +208,11 @@ public class DatabaseImporter {
         } catch(SQLException e){
             try{
                 writer.write(e.getMessage());
+                if (!ErrorCount.containsKey(e.getSQLState())){
+                    ErrorCount.put(e.getSQLState(), 1);
+                } else {
+                    ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+                }
             }catch(IOException ioe){
                 System.out.println(e.getMessage());
             }
@@ -226,6 +250,11 @@ public class DatabaseImporter {
         } catch(SQLException e){
             try{
                 writer.write(e.getMessage());
+                if (!ErrorCount.containsKey(e.getSQLState())){
+                    ErrorCount.put(e.getSQLState(), 1);
+                } else {
+                    ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+                }
             }catch(IOException ioe){
                 System.out.println(e.getMessage());
             }
@@ -253,6 +282,11 @@ public class DatabaseImporter {
         } catch(SQLException e){
             try{
                 writer.write(e.getMessage());
+                if (!ErrorCount.containsKey(e.getSQLState())){
+                    ErrorCount.put(e.getSQLState(), 1);
+                } else {
+                    ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+                }
             }catch(IOException ioe){
                 System.out.println(e.getMessage());
             }
@@ -288,6 +322,11 @@ public class DatabaseImporter {
         } catch(SQLException e){
             try{
                 writer.write(e.getMessage());
+                if (!ErrorCount.containsKey(e.getSQLState())){
+                    ErrorCount.put(e.getSQLState(), 1);
+                } else {
+                    ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+                }
             }catch(IOException ioe){
                 System.out.println(e.getMessage());
             }
@@ -314,6 +353,11 @@ public class DatabaseImporter {
         } catch(SQLException e){
             try{
                 writer.write(e.getMessage());
+                if (!ErrorCount.containsKey(e.getSQLState())){
+                    ErrorCount.put(e.getSQLState(), 1);
+                } else {
+                    ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+                }
             }catch(IOException ioe){
                 System.out.println(e.getMessage());
             }
@@ -345,6 +389,11 @@ public class DatabaseImporter {
         } catch(SQLException e){
             try{
                 writer.write(e.getMessage());
+                if (!ErrorCount.containsKey(e.getSQLState())){
+                    ErrorCount.put(e.getSQLState(), 1);
+                } else {
+                    ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+                }
             }catch(IOException ioe){
                 System.out.println(e.getMessage());
             }
@@ -376,6 +425,11 @@ public class DatabaseImporter {
         } catch(SQLException e){
             try{
                 writer.write(e.getMessage());
+                if (!ErrorCount.containsKey(e.getSQLState())){
+                    ErrorCount.put(e.getSQLState(), 1);
+                } else {
+                    ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+                }
             }catch(IOException ioe){
                 System.out.println(e.getMessage());
             }

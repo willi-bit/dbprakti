@@ -31,6 +31,9 @@ public class main {
                 dbImporter.InsertReviews(r);
             }
             dbImporter.writer.close();
+            for (Map.Entry<String, Integer> errorCode : dbImporter.ErrorCount.entrySet()){
+                System.out.println(errorCode.getKey() + ": " + errorCode.getValue());
+            }
 
         } catch (Exception e) {
             System.out.println(e);
