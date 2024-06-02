@@ -2,6 +2,7 @@ import com.opencsv.CSVReader;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +27,11 @@ public class CSVParser {
                     continue;
                 }
                 String rating = lineInArray[1];
+                if (Integer.parseInt(rating) > 5) {
+                    FileWriter fileWriter = new FileWriter("data/errors.txt", true);
+                    fileWriter.write("ERROR PARSING REVIEWS: RATING OVER 5 STARS");
+                    continue;
+                }
                 String helpfulRating = lineInArray[2];
                 String userName = lineInArray[4];
                 String summary = lineInArray[5];

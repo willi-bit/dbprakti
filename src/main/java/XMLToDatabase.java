@@ -16,7 +16,8 @@ public class XMLToDatabase {
 
     private Map<Category, List<String>> categories;
     List<ProductSimilars> products = new ArrayList<>();
-    public Map<Category, List<String>> getCategories(){
+
+    public Map<Category, List<String>> getCategories() {
         return categories;
     }
 
@@ -37,6 +38,10 @@ public class XMLToDatabase {
         }
     }
 
+    /**
+     * @param products List of products in relation to a list of their similars
+     * @throws Exception for parsing the XML DOM, shouldn't happen
+     */
     private void startDresdenParsing(List<ProductSimilars> products) throws Exception {
         String dresdenPath = "data/dresden.xml";
         try {
@@ -44,10 +49,15 @@ public class XMLToDatabase {
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(new File(dresdenPath));
             processStore(document.getDocumentElement(), products);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    /**
+     * @param products List of products in relation to a list of their similars
+     * @throws Exception for parsing the XML DOM, shouldn't happen
+     */
     private void startLeipzigParsing(List<ProductSimilars> products) throws Exception {
         String leipzigPath = "data/leipzig_transformed.xml";
         try {
@@ -55,21 +65,24 @@ public class XMLToDatabase {
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(new File(leipzigPath));
             processStore(document.getDocumentElement(), products);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     /**
      * parses xml
-     * @param startElement start element of xml
-     * @param products list of store items
+     *
+     * @param startElement start element of XML DOM tree
+     * @param products     List of products in relation to a list of their similars
      * @throws ParseException
      * @throws UnsupportedEncodingException
      */
-    private void processStore(Element startElement,List<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
+    private void processStore(Element startElement, List<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
         DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
-        DVD dvd = null; CD cd = null; Book book = null;
+        DVD dvd = null;
+        CD cd = null;
+        Book book = null;
         List<Book> books = new ArrayList<>();
         List<CD> cds = new ArrayList<>();
         List<DVD> dvds = new ArrayList<>();
@@ -80,7 +93,7 @@ public class XMLToDatabase {
         Store store = new Store(storeName, storeAddress);
         dbImporter.InsertStore(store);
         String datePattern = "yyyy-MM-dd";
-        SimpleDateFormat  simpleDateFormat = new SimpleDateFormat(datePattern);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(datePattern);
         List<String> similars = new ArrayList<>();
         for (int i = 0; i < nodes.getLength(); i++) {
             Element element = (Element) nodes.item(i);
@@ -90,16 +103,31 @@ public class XMLToDatabase {
                 similars.add(similarId);
                 continue;
             }
+            // case for handling similars in Leipzig
+            Element similarBaseElement = (Element) element.getElementsByTagName("similars").item(0);
+            NodeList similarElements = similarBaseElement.getElementsByTagName("sim_product");
+            if (similarElements.getLength() > 0) {
+                for (int j = 0; j < similarElements.getLength(); j++) {
+                    Element similarElement = (Element) similarElements.item(j);
+                    Element asinElement = (Element) similarElement.getElementsByTagName("asin").item(0);
+                    String asin = asinElement.getTextContent().trim();
+                    similars.add(asin);
+                }
+            }
             switch (name) {
                 case "DVD":
-                    String id =  element.getAttribute("asin").trim();
+                    String id = element.getAttribute("asin").trim();
 
                     Element actorsElement = (Element) element.getElementsByTagName("actors").item(0);
                     NodeList actorElements = actorsElement.getElementsByTagName("actor");
                     String[] actorsArr = new String[actorElements.getLength()];
                     for (int j = 0; j < actorElements.getLength(); j++) {
                         Node actor = actorElements.item(j);
-                        actorsArr[j] = actor.getTextContent().trim().split("\\n")[0];
+                        String elementName = actor.getTextContent().trim().split("\\n")[0];
+                        if(elementName.isEmpty()) {
+                            elementName = actor.getAttributes().item(0).getTextContent().trim();
+                        }
+                        actorsArr[j] = elementName;
                     }
                     String actors = String.join(", ", actorsArr);
 
@@ -108,11 +136,15 @@ public class XMLToDatabase {
                     String[] creatorsArr = new String[creatorElements.getLength()];
                     for (int j = 0; j < creatorElements.getLength(); j++) {
                         Node creator = creatorElements.item(j);
-                        creatorsArr[j] = creator.getTextContent().trim().split("\\n")[0];
+                        String elementName = creator.getTextContent().trim().split("\\n")[0];
+                        if(elementName.isEmpty()) {
+                            elementName = creator.getAttributes().item(0).getTextContent().trim();
+                        }
+                        creatorsArr[j] = elementName;
                     }
                     String creators = String.join(", ", creatorsArr);
 
-                    String director =  element.getElementsByTagName("director").item(0) != null ?
+                    String director = element.getElementsByTagName("director").item(0) != null ?
                             element.getElementsByTagName("director").item(0).getTextContent().trim().split("\\n")[0] :
                             "";
 
@@ -126,6 +158,7 @@ public class XMLToDatabase {
                             null;
                     dvd = new DVD(id, format, length, regionCode, actors, creators, director);
                     dvds.add(dvd);
+                    System.out.println(storeName+": "+dvd.id);
                     break;
 
                 case "Music":
@@ -135,9 +168,17 @@ public class XMLToDatabase {
                     Element artistsElement = (Element) element.getElementsByTagName("artists").item(0);
                     NodeList artistElements = artistsElement.getElementsByTagName("artist");
                     String[] artistsArr = new String[artistElements.getLength()];
+                    if (artistElements.getLength() == 0) {
+                        System.out.println("HURENSOHN");
+                        continue;
+                    }
                     for (int j = 0; j < artistElements.getLength(); j++) {
                         Node actor = artistElements.item(j);
-                        artistsArr[j] = actor.getTextContent().trim();
+                        String elementName = actor.getTextContent().trim().split("\\n")[0];
+                        if(elementName.isEmpty()) {
+                            elementName = actor.getAttributes().item(0).getTextContent().trim();
+                        }
+                        artistsArr[j] = elementName;
                     }
                     String artist = String.join(", ", artistsArr);
 
@@ -146,7 +187,11 @@ public class XMLToDatabase {
                     String[] labelsArr = new String[labelElements.getLength()];
                     for (int j = 0; j < labelElements.getLength(); j++) {
                         Node labelElement = labelElements.item(j);
-                        labelsArr[j] = labelElement.getTextContent().trim();
+                        String elementName = labelElement.getTextContent().trim().split("\\n")[0];
+                        if(elementName.isEmpty()) {
+                            elementName = labelElement.getAttributes().item(0).getTextContent().trim();
+                        }
+                        labelsArr[j] = elementName;
                     }
                     String label = String.join(", ", labelsArr);
 
@@ -155,7 +200,11 @@ public class XMLToDatabase {
                     String[] tracksArr = new String[trackElements.getLength()];
                     for (int j = 0; j < trackElements.getLength(); j++) {
                         Node loopElement = trackElements.item(j);
-                        tracksArr[j] = loopElement.getTextContent().trim();
+                        String elementName = loopElement.getTextContent().trim().split("\\n")[0];
+                        if(elementName.isEmpty()) {
+                            elementName = loopElement.getAttributes().item(0).getTextContent().trim();
+                        }
+                        tracksArr[j] = elementName;
                     }
                     String titleList = String.join(", ", tracksArr);
 
@@ -175,18 +224,26 @@ public class XMLToDatabase {
                     String[] authorsArr = new String[authorElements.getLength()];
                     for (int j = 0; j < authorElements.getLength(); j++) {
                         Node loopElement = authorElements.item(j);
-                        authorsArr[j] = loopElement.getTextContent().trim();
+                        String elementName = loopElement.getTextContent().trim().split("\\n")[0];
+                        if(elementName.isEmpty()) {
+                            elementName = loopElement.getAttributes().item(0).getTextContent().trim();
+                        }
+                        authorsArr[j] = elementName;
                     }
                     String authorList = String.join(", ", authorsArr);
                     Element bookSpec = (Element) element.getElementsByTagName("bookspec").item(0);
-                    Integer pages =  bookSpec.getElementsByTagName("pages").item(0).getTextContent().isEmpty() ? null: Integer.parseInt(bookSpec.getElementsByTagName("pages").item(0).getTextContent().trim());
+                    Integer pages = bookSpec.getElementsByTagName("pages").item(0).getTextContent().isEmpty() ? null : Integer.parseInt(bookSpec.getElementsByTagName("pages").item(0).getTextContent().trim());
 
                     Element publishersElement = (Element) element.getElementsByTagName("publishers").item(0);
                     NodeList publisherElements = publishersElement.getElementsByTagName("publisher");
                     String[] publishersArr = new String[publisherElements.getLength()];
                     for (int j = 0; j < publisherElements.getLength(); j++) {
                         Node loopElement = publisherElements.item(j);
-                        publishersArr[j] = loopElement.getTextContent().trim();
+                        String elementName = loopElement.getTextContent().trim().split("\\n")[0];
+                        if(elementName.isEmpty()) {
+                            elementName = loopElement.getAttributes().item(0).getTextContent().trim();
+                        }
+                        publishersArr[j] = elementName;
                     }
                     String publisherList = String.join(", ", publishersArr);
                     String bookDateText = bookSpec.getElementsByTagName("publication").item(0).getTextContent().trim();
@@ -209,7 +266,7 @@ public class XMLToDatabase {
             String image = details == null ? null : details.getAttribute("image").trim();
             if (!products.isEmpty()) {
 
-                ProductSimilars ps = products.get(products.size()-1);
+                ProductSimilars ps = products.get(products.size() - 1);
                 List<String> al = new ArrayList<>(similars);
                 ps.similars = al;
             }
@@ -224,12 +281,13 @@ public class XMLToDatabase {
             if (price == null) {
                 isAvailable = false;
             }
-            String condition = priceElement == null? null : priceElement.getAttribute("state").trim();
+            String condition = priceElement == null ? null : priceElement.getAttribute("state").trim();
 
             ProductCatalog productCatalog = new ProductCatalog(store.id, productId, price, isAvailable, condition);
             similars.clear();
             catalogs.add(productCatalog);
         }
+
         for(ProductSimilars sim : products){
             dbImporter.InsertProduct(sim);
         }
@@ -245,6 +303,7 @@ public class XMLToDatabase {
             dbImporter.InsertCatalog(cat);
         }
     }
+
     private void startCategoryParsing() {
         String categoryPath = "data/categories.xml";
         try {
@@ -253,13 +312,14 @@ public class XMLToDatabase {
             Document document = builder.parse(new File(categoryPath));
             document.getDocumentElement().normalize();
             this.categories = processCategories(document.getDocumentElement(), null, 0);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     /**
      * parses xml
+     *
      * @param element
      * @param parentCategoryId id of parent category
      * @param count
