@@ -1,10 +1,12 @@
 import org.w3c.dom.*;
+import org.w3c.dom.ls.LSOutput;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.*;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -12,42 +14,59 @@ import java.util.*;
 
 public class XMLToDatabase {
 
-    String leipzigPath = "data/leipzig_transformed.xml";
-    String reviewPath = "data/reviews.csv";
-    public static void main() {
+    private String leipzigPath = "data/leipzig_transformed.xml";
+    private String reviewPath = "data/reviews.csv";
+    private Map<Category, List<String>> categories;
 
+    public Map<Category, List<String>> getCategories(){
+        return categories;
+    }
+
+    public void main() {
         try {
             // Parse the XML file
             // Uncomment to start parsing categories
-            startCategoryParsing();
-            startDresdenParsing();
+            //startCategoryParsing();
+            List<ProductSimilars> products = new ArrayList<>();
+            startDresdenParsing(products);
+            for (ProductSimilars p : products) {
+                System.out.println(p.product.title + ": " + p.similars.size());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    private static void startDresdenParsing() {
+    private void startDresdenParsing(List<ProductSimilars> products) throws Exception {
         String dresdenPath = "data/dresden.xml";
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(new File(dresdenPath));
-            processDresden(document.getDocumentElement());
+            processDresden(document.getDocumentElement(), products);
         } catch(Exception e) {
             e.printStackTrace();
         }
     }
-    private static void processDresden(Element startElement) throws ParseException {
-        DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
+    private void processDresden(Element startElement, List<ProductSimilars> products) throws ParseException, UnsupportedEncodingException {
+        int counter = 0;
+        DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "123");
         DVD dvd = null; CD cd = null; Book book = null;
         NodeList nodes = startElement.getElementsByTagName("item");
         String storeName = startElement.getAttribute("name");
         String storeAddress = startElement.getAttribute("zip") + ", " + startElement.getAttribute("street");
         Store store = new Store(storeName, storeAddress);
+        dbImporter.InsertStore(store);
         String datePattern = "yyyy-MM-dd";
         SimpleDateFormat  simpleDateFormat = new SimpleDateFormat(datePattern);
+        List<String> similars = new ArrayList<>();
         for (int i = 0; i < nodes.getLength(); i++) {
             Element element = (Element) nodes.item(i);
             String name = element.getAttribute("pgroup").trim().split("\\n")[0];
+            if (name == null || name.isEmpty() || name.getBytes("utf-8").length == 0) {
+                String similarId = element.getAttribute("asin").trim();
+                similars.add(similarId);
+                continue;
+            }
             switch (name) {
                 case "DVD":
                     String id =  element.getAttribute("asin").trim();
@@ -160,13 +179,19 @@ public class XMLToDatabase {
             Integer ranking = rank.isEmpty() ? null : Integer.parseInt(rank);
             Element titleElement = (Element) element.getElementsByTagName("title").item(0);
             String title1 = titleElement == null ? null : titleElement.getTextContent().trim().split("\\n")[0];
-            //System.out.println(title1);
 
             Element details = (Element) element.getElementsByTagName("details").item(0);
             String image = details == null ? null : details.getAttribute("image").trim();
-
+            if (!products.isEmpty()) {
+                ProductSimilars ps = products.get(products.size()-1);
+                List<String> al = new ArrayList<>(similars);
+                ps.similars = al;
+            }
             // name == CATEGORY
-            Product product = new Product(productId, title1, 0f, ranking, null, image, name);
+            Product product = new Product(productId, title1, 0f, ranking, null, image);
+            List<String> nl = new ArrayList<>();
+            ProductSimilars newProduct = new ProductSimilars(product, nl);
+            products.add(newProduct);
             Element priceElement = (Element) element.getElementsByTagName("price").item(0);
             // Ist keinen Preis zu haben gültig?
             Float price = priceElement == null ? null : priceElement.getTextContent().trim().isEmpty() ? null : Float.parseFloat(priceElement.getTextContent().trim());
@@ -176,77 +201,51 @@ public class XMLToDatabase {
             }
             String condition = priceElement == null? null : priceElement.getAttribute("state").trim();
 
-            ProductCatalog productCatalog = new ProductCatalog(storeName + storeAddress, productId, price, isAvailable, condition);
+            ProductCatalog productCatalog = new ProductCatalog(store.id, productId, price, isAvailable, condition);
+            if(element.getTextContent().trim().split("\\n")[0].equals("Simply Red - Cuba! (NTSC)")) {
+                System.out.println(similars);
+            }
+            similars.clear();
+            counter++;
+            //dbImporter.InsertProduct(product);
             /*
-            dbImporter.InsertProduct(product);
             switch (name){
                 case "DVD":
+                    counterDVD++;
                     dbImporter.InsertDVD(dvd);
                     break;
-                case "CD":
+                case "Music":
+                    counterCD++;
                     dbImporter.InsertCD(cd);
                     break;
-                case "Bool":
+                case "Book":
+                    counterBook++;
                     dbImporter.InsertBook(book);
                     break;
             }
-            dbImporter.InsertCatalog(productCatalog);*/
+            dbImporter.InsertCatalog(productCatalog);
+
+             */
         }
+        //System.out.println(counter);
+        //System.out.println(counterDVD);
+        //System.out.println(counterCD);
+        //System.out.println(counterBook);
     }
-    private static void startCategoryParsing() {
+    private void startCategoryParsing() {
         String categoryPath = "data/categories.xml";
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(new File(categoryPath));
             document.getDocumentElement().normalize();
-            //test();
-            processCategories(document.getDocumentElement(), null, 0);
+            this.categories = processCategories(document.getDocumentElement(), null, 0);
         } catch(Exception e) {
             e.printStackTrace();
         }
     }
-    /*
-    {<category:
-        name: String
-        parentCategory: UUID,
-        id: UUID
-    ,
-    {item: String}>,
-    }
-     */
-    private static void test() throws IOException, SAXException, ParserConfigurationException {
-        String xml = "<add job=\"351\">\n" +
-                "    <tag>foobar</tag>\n" +
-                "    <tag>foobar2</tag>\n" +
-                "</add>";
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        ByteArrayInputStream bis = new ByteArrayInputStream(xml.getBytes());
-        Document doc = db.parse(bis);
-        Node n = doc.getFirstChild();
-        NodeList nl = n.getChildNodes();
-        Node an,an2;
 
-        for (int i=0; i < nl.getLength(); i++) {
-            an = nl.item(i);
-            if(an.getNodeType()==Node.ELEMENT_NODE) {
-                NodeList nl2 = an.getChildNodes();
-
-                for(int i2=0; i2<nl2.getLength(); i2++) {
-                    an2 = nl2.item(i2);
-                    // DEBUG PRINTS
-                    System.out.println(an2.getNodeName() + ": type (" + an2.getNodeType() + "):");
-                    if(an2.hasChildNodes()) System.out.println(an2.getFirstChild().getTextContent());
-                    if(an2.hasChildNodes()) System.out.println(an2.getFirstChild().getNodeValue());
-                    System.out.println(an2.getTextContent());
-                    System.out.println(an2.getNodeValue());
-                }
-            }
-        }
-    }
-    private static Map<Category, List<String>> processCategories(Element element, String parentCategoryId, int count) {
-        System.out.println("MAINCAT");
+    private Map<Category, List<String>> processCategories(Element element, String parentCategoryId, int count) {
         NodeList categories = element.getElementsByTagName("category");
         Map<Category, List<String>> map = new HashMap<>();
         for (int i = 0; i < categories.getLength(); i++) {
@@ -281,7 +280,7 @@ public class XMLToDatabase {
         return map;
     }
 
-    private static List<String> processItems(Element categoryElement) {
+    private List<String> processItems(Element categoryElement) {
         NodeList items = categoryElement.getElementsByTagName("item");
         List<String> list = new ArrayList<String>();
         for (int i = 0; i < items.getLength(); i++) {
@@ -291,5 +290,4 @@ public class XMLToDatabase {
         }
         return list;
     }
-
 }

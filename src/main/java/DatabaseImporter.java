@@ -1,4 +1,3 @@
-import javax.xml.catalog.Catalog;
 import java.sql.*;
 import java.util.*;
 
@@ -14,30 +13,30 @@ public class DatabaseImporter {
         this.password = pw;
     }
 
-    public void InsertCategories(List<Map<Category, List<String>>> Data){
+    public void InsertCategories(Map<Category, List<String>> categories){
 
-        if (Data == null){return;}
-        String insertCategorySQL = "INSERT INTO category (name, categoryid) VALUES (?,?)";
+        String insertCategorySQL = "INSERT INTO category (name, categoryid, parentcategory) VALUES (?,?,?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertCategorySQL)){
             List<Category> subCategories = new ArrayList<>();
-            for (Map<Category, List<String>> entry : Data) {
-                for (Map.Entry<Category, List<String>> categoryEntry : entry.entrySet()) {
-                    Category category = categoryEntry.getKey();
-                    if(category.parent == null){
-                        preparedStatement.setString(1, category.name);
-                        preparedStatement.setString(2, category.id);
-                        preparedStatement.addBatch();
-                    } else {
-                        subCategories.add(category);
-                    }
+
+            for (Map.Entry<Category, List<String>> entry : categories.entrySet()) {
+                Category category = entry.getKey();
+
+                if(category.parent != null){
+                    subCategories.add(category);
                 }
+                preparedStatement.setString(1, category.name);
+                preparedStatement.setString(2, category.id);
+                preparedStatement.setNull(3, java.sql.Types.VARCHAR);
+                preparedStatement.addBatch();
             }
+
             preparedStatement.executeBatch();
 
             for (Category category : subCategories) {
-                InsertSubCategories(category);
+                InsertParentCategory(category);
             }
 
         } catch(SQLException e){
@@ -46,28 +45,58 @@ public class DatabaseImporter {
 
     }
 
-    public void InsertSubCategories(Category category){
+    public void InsertParentCategory(Category category){
 
-        String insertCategorySQL = "INSERT INTO subcategory (name, parentcategoryid, subcategoryid) VALUES (?,?,?)";
+        String updateParentSQL = "UPDATE category SET parentcategory = ? WHERE categoryid = ?";
+        String deleteDuplicateSQL = "DELETE FROM category WHERE categoryid = ?";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
-            PreparedStatement preparedStatement = connection.prepareStatement(insertCategorySQL)){
+            PreparedStatement preparedStatement = connection.prepareStatement(updateParentSQL)){
 
-            preparedStatement.setString(1, category.name);
-            preparedStatement.setString(2, category.parent);
-            preparedStatement.setString(3, category.id);
+            preparedStatement.setString(1, category.parent);
+            preparedStatement.setString(2, category.id);
 
             preparedStatement.execute();
 
         } catch(SQLException e){
             System.out.println(e.getMessage());
-        }
+            if(e.getSQLState().equals("23505")){
+                try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
+                    PreparedStatement preparedStatement = connection.prepareStatement(deleteDuplicateSQL)){
 
+                    preparedStatement.setString(1, category.id);
+                    preparedStatement.execute();
+                    System.out.println("DELETED DUPLICATE");
+
+                } catch (SQLException ex){
+                    System.out.println(ex.getMessage());
+                }
+            }
+        }
+    }
+
+    public void InsertProductCategoryRelation(Category category, List<String> products){
+
+        String insertRelationSQL = "INSERT INTO productcategories (product, category) VALUES (?,?)";
+
+        try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
+            PreparedStatement preparedStatement = connection.prepareStatement(insertRelationSQL)){
+
+            for(String product : products){
+
+                preparedStatement.setString(1, product);
+                preparedStatement.setString(2, category.id);
+                preparedStatement.addBatch();
+            }
+            preparedStatement.executeBatch();
+
+        } catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     public void InsertStore(Store store){
 
-        if (store == null){return;}
         String insertStoresSQL = "INSERT INTO store (name, address, storeid) VALUES (?, ?, ?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
@@ -86,14 +115,17 @@ public class DatabaseImporter {
 
     public void InsertBook(Book book){
 
-        if (book == null){return;}
         String insertBookSQL = "INSERT INTO book (author, pages, releasedate, isbn, publisher, productid) VALUES (?, ?, ?, ?, ?, ?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertBookSQL)){
 
             preparedStatement.setString(1, book.author);
-            preparedStatement.setInt(2, book.pages);
+            if(book.pages != null){
+                preparedStatement.setInt(2, book.pages);
+            } else {
+                preparedStatement.setNull(2, java.sql.Types.INTEGER);
+            }
             preparedStatement.setDate(3, book.releaseDate);
             preparedStatement.setString(4, book.ISBN);
             preparedStatement.setString(5, book.publisher);
@@ -108,7 +140,6 @@ public class DatabaseImporter {
 
     public void InsertDVD(DVD dvd){
 
-        if (dvd == null){return;}
         String insertDVDSQL = "INSERT INTO dvd (format, length, regioncode, actors, creator, director, productid) VALUES (?,?,?,?,?,?,?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
@@ -156,12 +187,12 @@ public class DatabaseImporter {
 
     public void InsertProduct(Product product){
 
-        if (product == null){return;}
-        String insertProductSQL = "INSERT INTO product (title, rating, rank, productnr, picture, category, productid) VALUES (?,?,?,?,?,?,?)";
+        String insertProductSQL = "INSERT INTO product (title, rating, rank, productnr, picture, productid) VALUES (?,?,?,?,?,?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertProductSQL)){
 
+            System.out.println(product.title);
             preparedStatement.setString(1, product.title);
             preparedStatement.setFloat(2, product.rating);
             if (product.rank != null){
@@ -171,8 +202,7 @@ public class DatabaseImporter {
             }
             preparedStatement.setString(4, product.nr);
             preparedStatement.setString(5, product.picture);
-            preparedStatement.setString(6, product.category);
-            preparedStatement.setString(7, product.id);
+            preparedStatement.setString(6, product.id);
 
             preparedStatement.execute();
 
@@ -183,7 +213,6 @@ public class DatabaseImporter {
 
     public void InsertCatalog(ProductCatalog catalog){
 
-        if (catalog == null){return;}
         String insertCatalogSQL = "INSERT INTO productcatalog (store, product, price, available, condition) VALUES (?,?,?,?,?)";
 
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
@@ -205,28 +234,5 @@ public class DatabaseImporter {
             System.out.println(e.getMessage());
         }
 
-    }
-
-    public void InsertReview(Review review){
-        if (review == null){return;}
-        String insertReviewSQL = "INSERT INTO review (reviewid, customer, product, stars, summary, review, helpful, username) VALUES (?,?,?,?,?,?,?,?)";
-
-        try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
-            PreparedStatement preparedStatement = connection.prepareStatement(insertReviewSQL)){
-
-            preparedStatement.setString(1, review.id);
-            preparedStatement.setString(2, review.customer);
-            preparedStatement.setString(3, review.product);
-            preparedStatement.setInt(4, review.stars);
-            preparedStatement.setString(5, review.summary);
-            preparedStatement.setString(6, review.review);
-            preparedStatement.setInt(6, review.helpful);
-            preparedStatement.setString(7, review.username);
-
-            preparedStatement.execute();
-
-        } catch(SQLException e){
-            System.out.println(e.getMessage());
-        }
     }
 }

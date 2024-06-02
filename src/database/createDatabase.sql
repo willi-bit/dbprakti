@@ -5,18 +5,10 @@ CREATE TABLE Category(
     Name VARCHAR(255)
 );
 
-CREATE TABLE SubCategory(
-    SubCategoryID    VARCHAR(255) PRIMARY KEY,
-    Name             VARCHAR(255),
-    ParentCategoryID VARCHAR(255)
-);
-
-ALTER TABLE SubCategory
-    ADD CONSTRAINT FKParentCategory
-        FOREIGN KEY (ParentCategoryID) REFERENCES Category(CategoryID);
-
-ALTER TABLE SubCategory
-    ADD CONSTRAINT uniqueNameParentCombination UNIQUE(Name, ParentCategoryID);
+ALTER TABLE Category
+    ADD COLUMN ParentCategory VARCHAR(255),
+    ADD FOREIGN KEY (ParentCategory) REFERENCES Category(CategoryID),
+    ADD CONSTRAINT UniqueNameParentCombination UNIQUE (Name, ParentCategory);
 
 CREATE TABLE Product(
     ProductID VARCHAR(255) PRIMARY KEY,
@@ -24,8 +16,14 @@ CREATE TABLE Product(
     Rating FLOAT,
     Rank INT,
     ProductNR VARCHAR(255) UNIQUE,
-    Picture VARCHAR(255),
+    Picture VARCHAR(255)
+);
+
+CREATE TABLE ProductCategories(
+    Product VARCHAR(255),
     Category VARCHAR(255),
+    PRIMARY KEY (Product, Category),
+    FOREIGN KEY (Product) REFERENCES Product(ProductID),
     FOREIGN KEY (Category) REFERENCES Category(CategoryID)
 );
 
@@ -62,11 +60,9 @@ CREATE TABLE CD(
 CREATE TABLE Store(
     StoreID VARCHAR(255) PRIMARY KEY,
     Name VARCHAR(255),
-    Address TEXT
+    Address TEXT,
+    CONSTRAINT uniqueNameAddressCombination UNIQUE(Name, Address)
 );
-
-ALTER TABLE Store
-    ADD CONSTRAINT uniqueNameAddressCombination UNIQUE(Name, Address);
 
 CREATE TABLE ProductCatalog(
     Store VARCHAR(255),
