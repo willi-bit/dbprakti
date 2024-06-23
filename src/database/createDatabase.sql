@@ -27,7 +27,8 @@ CREATE TABLE ProductCategories(
 );
 
 CREATE TABLE Person(
-    Name VARCHAR(255) PRIMARY KEY
+    PersonID VARCHAR(255) SERIAL PRIMARY KEY ,
+    Name VARCHAR(255)
 );
 
 CREATE TABLE Book(
