@@ -182,6 +182,30 @@ public class DatabaseImporter {
         }
     }
 
+    public void InsertPerson(Person person){
+
+        String insertPersonSQL = "INSERT INTO person (name) VALUES (?)";
+
+        try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
+            PreparedStatement preparedStatement = connection.prepareStatement(insertPersonSQL)){
+
+            preparedStatement.setString(1, person.name);
+            preparedStatement.executeUpdate();
+
+        } catch(SQLException e){
+            try{
+                writer.write(e.getMessage());
+                if (!ErrorCount.containsKey(e.getSQLState())){
+                    ErrorCount.put(e.getSQLState(), 1);
+                } else {
+                    ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+                }
+            }catch(IOException ioe){
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
     /**
      * inserts book
      * @param book book

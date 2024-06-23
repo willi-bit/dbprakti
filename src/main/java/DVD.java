@@ -1,5 +1,3 @@
-import java.util.UUID;
-
 public class DVD {
     public String id;
     public String format;

@@ -7,7 +7,7 @@ CREATE TABLE Category(
 
 ALTER TABLE Category
     ADD COLUMN ParentCategory VARCHAR(255),
-    ADD FOREIGN KEY (ParentCategory) REFERENCES Category(CategoryID),
+    ADD FOREIGN KEY (ParentCategory) REFERENCES Category(CategoryID) ON UPDATE CASCADE,
     ADD CONSTRAINT UniqueNameParentCombination UNIQUE (Name, ParentCategory);
 
 CREATE TABLE Product(
@@ -22,8 +22,12 @@ CREATE TABLE ProductCategories(
     Product VARCHAR(255),
     Category VARCHAR(255),
     PRIMARY KEY (Product, Category),
-    FOREIGN KEY (Product) REFERENCES Product(ProductID),
-    FOREIGN KEY (Category) REFERENCES Category(CategoryID)
+    FOREIGN KEY (Product) REFERENCES Product(ProductID) ON UPDATE CASCADE,
+    FOREIGN KEY (Category) REFERENCES Category(CategoryID) ON UPDATE CASCADE
+);
+
+CREATE TABLE Person(
+    Name VARCHAR(255) PRIMARY KEY
 );
 
 CREATE TABLE Book(
@@ -33,7 +37,8 @@ CREATE TABLE Book(
     ReleaseDate DATE NOT NULL,
     ISBN VARCHAR(255) UNIQUE NOT NULL,
     Publisher VARCHAR(255)NOT NULL,
-    FOREIGN KEY (ProductID) REFERENCES Product(ProductID)
+    FOREIGN KEY (ProductID) REFERENCES Product(ProductID) ON UPDATE CASCADE,
+    FOREIGN KEY (Author) REFERENCES Person(Name) ON UPDATE CASCADE
 );
 
 CREATE TABLE DVD(
@@ -41,10 +46,13 @@ CREATE TABLE DVD(
     Format VARCHAR(255),
     Length INT,
     RegionCode INT,
-    Actors TEXT,
+    Actors VARCHAR(255)[],
     Creator VARCHAR(255),
     Director VARCHAR(255),
-    FOREIGN KEY (ProductID) REFERENCES Product(ProductID)
+    FOREIGN KEY (ProductID) REFERENCES Product(ProductID) ON UPDATE CASCADE,
+    FOREIGN KEY (Creator) REFERENCES Person(Name) ON UPDATE CASCADE,
+    FOREIGN KEY (Director) REFERENCES Person(Name) ON UPDATE CASCADE,
+    FOREIGN KEY (EACH ELEMENT OF Actors) REFERENCES Person(Name) ON UPDATE CASCADE
 );
 
 CREATE TABLE CD(
@@ -53,7 +61,7 @@ CREATE TABLE CD(
     Label VARCHAR(255) NOT NULL,
     ReleaseDate DATE NOT NULL,
     TitleList TEXT NOT NULL,
-    FOREIGN KEY (ProductID) REFERENCES Product(ProductID)
+    FOREIGN KEY (ProductID) REFERENCES Product(ProductID) ON UPDATE CASCADE
 );
 
 CREATE TABLE Store(
@@ -70,8 +78,8 @@ CREATE TABLE ProductCatalog(
     Available BOOLEAN,
     Condition VARCHAR(255),
     PRIMARY KEY (Store, Product),
-    FOREIGN KEY (Store) REFERENCES Store(StoreID),
-    FOREIGN KEY (Product) REFERENCES Product(ProductID)
+    FOREIGN KEY (Store) REFERENCES Store(StoreID) ON UPDATE CASCADE,
+    FOREIGN KEY (Product) REFERENCES Product(ProductID) ON UPDATE CASCADE
 );
 
 CREATE TABLE Customer(
@@ -85,7 +93,7 @@ CREATE TABLE CustomerOrder(
     OrderID VARCHAR(255) PRIMARY KEY,
     Customer VARCHAR(255),
     Date DATE,
-    FOREIGN KEY (Customer) REFERENCES Customer(CustomerID)
+    FOREIGN KEY (Customer) REFERENCES Customer(CustomerID) ON UPDATE CASCADE
 );
 
 CREATE TABLE OrderDetail(
@@ -93,8 +101,8 @@ CREATE TABLE OrderDetail(
     Product VARCHAR(255),
     Quantity INT,
     PRIMARY KEY (CustomerOrder, Product),
-    FOREIGN KEY (CustomerOrder) REFERENCES CustomerOrder(OrderID),
-    FOREIGN KEY (Product) REFERENCES Product(ProductID)
+    FOREIGN KEY (CustomerOrder) REFERENCES CustomerOrder(OrderID) ON UPDATE CASCADE,
+    FOREIGN KEY (Product) REFERENCES Product(ProductID) ON UPDATE CASCADE
 );
 
 CREATE TABLE Review(
@@ -106,16 +114,16 @@ CREATE TABLE Review(
     Review TEXT NOT NULL,
     Helpful INT NOT NULL,
     Username VARCHAR(255) NOT NULL,
-    FOREIGN KEY (Customer) REFERENCES Customer(CustomerID),
-    FOREIGN KEY (Product) REFERENCES Product(ProductID)
+    FOREIGN KEY (Customer) REFERENCES Customer(CustomerID) ON UPDATE CASCADE,
+    FOREIGN KEY (Product) REFERENCES Product(ProductID) ON UPDATE CASCADE
 );
 
 CREATE TABLE SimilarProduct(
     Product1 VARCHAR(255),
     Product2 VARCHAR(255),
     PRIMARY KEY (Product1, Product2),
-    FOREIGN KEY (Product1) REFERENCES Product(ProductID),
-    FOREIGN KEY (Product2) REFERENCES Product(ProductID)
+    FOREIGN KEY (Product1) REFERENCES Product(ProductID) ON UPDATE CASCADE,
+    FOREIGN KEY (Product2) REFERENCES Product(ProductID) ON UPDATE CASCADE
 );
 
 CREATE OR REPLACE FUNCTION update_product_rating()
