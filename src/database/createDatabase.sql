@@ -77,7 +77,7 @@ CREATE TABLE ProductCatalog(
     Price DECIMAL,
     Available BOOLEAN,
     Condition VARCHAR(255),
-    PRIMARY KEY (Store, Product),
+    PRIMARY KEY (Store, Product, Condition),
     FOREIGN KEY (Store) REFERENCES Store(StoreID) ON UPDATE CASCADE,
     FOREIGN KEY (Product) REFERENCES Product(ProductID) ON UPDATE CASCADE
 );

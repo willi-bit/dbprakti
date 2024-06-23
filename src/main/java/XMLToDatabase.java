@@ -17,6 +17,12 @@ public class XMLToDatabase {
     private Map<Category, List<String>> categories;
     List<ProductSimilars> products = new ArrayList<>();
 
+    private Set<String> personSet = new HashSet<>();
+
+    public Set<String> getPersons(){
+        return personSet;
+    }
+
     public Map<Category, List<String>> getCategories() {
         return categories;
     }
@@ -128,6 +134,7 @@ public class XMLToDatabase {
                             elementName = actor.getAttributes().item(0).getTextContent().trim();
                         }
                         actorsArr[j] = elementName;
+                        personSet.add(elementName);
                     }
                     String actors = String.join(", ", actorsArr);
 
@@ -141,12 +148,14 @@ public class XMLToDatabase {
                             elementName = creator.getAttributes().item(0).getTextContent().trim();
                         }
                         creatorsArr[j] = elementName;
+                        personSet.add(elementName);
                     }
                     String creators = String.join(", ", creatorsArr);
 
                     String director = element.getElementsByTagName("director").item(0) != null ?
                             element.getElementsByTagName("director").item(0).getTextContent().trim().split("\\n")[0] :
                             "";
+                    personSet.add(director);
 
                     Element dvdspec = (Element) element.getElementsByTagName("dvdspec").item(0);
                     String format = dvdspec.getElementsByTagName("format").item(0).getTextContent().trim().split("\\n")[0];
@@ -174,10 +183,10 @@ public class XMLToDatabase {
                             elementName = actor.getAttributes().item(0).getTextContent().trim();
                         }
                         artistsArr[j] = elementName;
+                        personSet.add(elementName);
                     }
                     String artist = String.join(", ", artistsArr);
                     if (artist.length() < 2) {
-                        System.out.println("RAUS MIT DIR artist" + musicId);
                         artist = null;
                     }
 
@@ -231,6 +240,8 @@ public class XMLToDatabase {
                             elementName = loopElement.getAttributes().item(0).getTextContent().trim();
                         }
                         authorsArr[j] = elementName;
+                        personSet.add(elementName);
+
                     }
                     String authorList = String.join(", ", authorsArr);
                     Element bookSpec = (Element) element.getElementsByTagName("bookspec").item(0);
@@ -246,6 +257,7 @@ public class XMLToDatabase {
                             elementName = loopElement.getAttributes().item(0).getTextContent().trim();
                         }
                         publishersArr[j] = elementName;
+                        personSet.add(elementName);
                     }
                     String publisherList = String.join(", ", publishersArr);
                     Element bookDateElement = (Element) bookSpec.getElementsByTagName("publication").item(0);
@@ -291,6 +303,9 @@ public class XMLToDatabase {
             catalogs.add(productCatalog);
         }
 
+        for(String person : personSet) {
+            dbImporter.InsertPerson(new Person(person));
+        }
         for(ProductSimilars sim : products){
             dbImporter.InsertProduct(sim);
         }
