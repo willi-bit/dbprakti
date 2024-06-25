@@ -206,6 +206,34 @@ public class DatabaseImporter {
         }
     }
 
+    public int getPersonId(String name){
+
+        String getPersonIdSQL = "SELECT personid FROM person WHERE name = ?";
+
+        try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
+            PreparedStatement preparedStatement = connection.prepareStatement(getPersonIdSQL)){
+
+            preparedStatement.setString(1, name);
+            try(ResultSet resultSet = preparedStatement.executeQuery()){
+                if(resultSet.next()){
+                    return resultSet.getInt("personid");
+                }
+            }
+        } catch(SQLException e){
+            try{
+                writer.write(e.getMessage());
+                if (!ErrorCount.containsKey(e.getSQLState())){
+                    ErrorCount.put(e.getSQLState(), 1);
+                } else {
+                    ErrorCount.put(e.getSQLState(), ErrorCount.get(e.getSQLState()) + 1);
+                }
+            }catch(IOException ioe){
+                System.out.println(e.getMessage());
+            }
+        }
+        return 0;
+    }
+
     /**
      * inserts book
      * @param book book
@@ -217,7 +245,7 @@ public class DatabaseImporter {
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertBookSQL)){
 
-            preparedStatement.setString(1, book.author);
+            preparedStatement.setInt(1, getPersonId(book.author));
             if(book.pages != null){
                 preparedStatement.setInt(2, book.pages);
             } else {
@@ -265,9 +293,15 @@ public class DatabaseImporter {
             } else {
                 preparedStatement.setNull(3, java.sql.Types.INTEGER);
             }
-            preparedStatement.setString(4, dvd.actors);
-            preparedStatement.setString(5, dvd.creator);
-            preparedStatement.setString(6, dvd.director);
+            String[] actorsSplit = dvd.actors.split(",");
+            Integer[] actorIds = new Integer[actorsSplit.length];
+            for(int i = 0; i < actorIds.length; i++){
+                actorIds[i] = getPersonId(actorsSplit[i]);
+            }
+            Array actors = connection.createArrayOf("integer", actorIds);
+            preparedStatement.setArray(4, actors);
+            preparedStatement.setInt(5, getPersonId(dvd.creator));
+            preparedStatement.setInt(6, getPersonId(dvd.director));
             preparedStatement.setString(7, dvd.id);
             preparedStatement.executeUpdate();
 
@@ -296,7 +330,7 @@ public class DatabaseImporter {
         try(Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
             PreparedStatement preparedStatement = connection.prepareStatement(insertCDSQL)){
 
-            preparedStatement.setString(1, cd.artist);
+            preparedStatement.setInt(1, getPersonId(cd.artist));
             preparedStatement.setString(2, cd.label);
             preparedStatement.setDate(3, cd.releaseDate);
             preparedStatement.setString(4, cd.titleList);
