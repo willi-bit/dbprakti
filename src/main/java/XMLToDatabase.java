@@ -366,8 +366,6 @@ public class XMLToDatabase {
                     }
                 }
             }
-
-            List<String> list = processItems(categoryElement);
             if(category != null) {
                 List<String> list = processItems(categoryElement);
                 dbImporter.insertCategory(category);
@@ -375,7 +373,6 @@ public class XMLToDatabase {
             } else {
                 System.out.println(categoryElement.getTextContent());
             }
-            map.put(category, list);
         }
         return map;
     }
