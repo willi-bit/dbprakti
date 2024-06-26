@@ -345,6 +345,7 @@ public class XMLToDatabase {
      */
     private Map<Category, List<String>> processCategories(Element element, String parentCategoryId, int count) {
         NodeList categories = element.getElementsByTagName("category");
+        DatabaseImporter dbImporter = new DatabaseImporter("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
         Map<Category, List<String>> map = new HashMap<>();
         for (int i = 0; i < categories.getLength(); i++) {
             Element categoryElement = (Element) categories.item(i);
@@ -367,12 +368,14 @@ public class XMLToDatabase {
             }
 
             List<String> list = processItems(categoryElement);
+            if(category != null) {
+                List<String> list = processItems(categoryElement);
+                dbImporter.insertCategory(category);
+                map.put(category, list);
+            } else {
+                System.out.println(categoryElement.getTextContent());
+            }
             map.put(category, list);
-        }
-        int counter = 0;
-        for (Map.Entry<Category, List<String>> mapElement : map.entrySet()) {
-            if (counter > 20) break;
-            counter++;
         }
         return map;
     }
