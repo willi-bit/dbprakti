@@ -84,6 +84,27 @@ public class StatementRunner {
                 FROM productcatalog p
                 GROUP BY p.product
                 HAVING COUNT(DISTINCT p.store) = (SELECT COUNT(*) FROM store);
+                
+                query12
+                WITH ProductInAllStores AS (
+                    SELECT p.product
+                    FROM productcatalog p
+                    GROUP BY p.product
+                    HAVING COUNT(DISTINCT p.store) = (SELECT COUNT(*) FROM store)
+                ),
+                CheapestInSpecificStore AS (
+                    SELECT p.product
+                    FROM productcatalog p
+                    WHERE p.store ='ee3da6b4-ec11-49db-a03d-34490312aa8c'
+                    AND p.price = (
+                        SELECT MIN(pc.price)
+                        FROM productcatalog pc
+                        WHERE pc.product = p.product
+                    )
+                )
+                SELECT pas.product
+                FROM ProductInAllStores pas
+                JOIN CheapestInSpecificStore css ON pas.product = css.product;
                 """;
     }
 }
