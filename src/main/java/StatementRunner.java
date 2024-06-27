@@ -79,6 +79,11 @@ public class StatementRunner {
                 ))
                 where similar_product_category2<>'unknown';
                                 
+                query11:
+                SELECT p.product
+                FROM productcatalog p
+                GROUP BY p.product
+                HAVING COUNT(DISTINCT p.store) = (SELECT COUNT(*) FROM store);
                 """;
     }
 }
