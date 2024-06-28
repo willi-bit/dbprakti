@@ -37,13 +37,22 @@ select productid from product where rating=0;
 select username from review group by username having COUNT(*) > 9;
 
 --Geben Sie eine duplikatfreie und alphabetisch sortierte Liste der Namen aller Buchautoren an, die auch an DVDs oder Musik-CDs beteiligt sind.
-select * from (SELECT director AS author_id FROM dvd
-UNION
-SELECT creator AS author_id FROM dvd
-UNION
-SELECT artist AS author_id FROM cd
-UNION
-SELECT unnest(d.actors) as author_id from dvd d) as andere join book on book.author = andere.author_id;
+SELECT *
+FROM (
+         SELECT Director AS author_id
+         FROM DVD
+         UNION
+         SELECT Creator_ID AS author_id
+         FROM DVD_Creator
+         UNION
+         SELECT Artist_ID AS author_id
+         FROM CD_Artist
+         UNION
+         SELECT Actor_ID AS author_id
+         FROM DVD_Actor
+     ) AS other
+         JOIN Book_Author ON Book_Author.Author_ID = other.author_id
+         JOIN Book ON Book.ProductID = Book_Author.Book_ProductID;
 
 --Wie hoch ist die durchschnittliche Anzahl von Liedern einer Musik-CD?
 SELECT avg(array_length(string_to_array(cd.titlelist, ','), 1)) from cd;
