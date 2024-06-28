@@ -100,7 +100,7 @@ CREATE TABLE Store(
 CREATE TABLE ProductCatalog(
     Store VARCHAR(255),
     Product VARCHAR(255),
-    Price DECIMAL CHECK (Price >= 0),
+    Price DECIMAL CHECK (Price > 0),
     Available BOOLEAN,
     Condition VARCHAR(255),
     PRIMARY KEY (Store, Product, Condition),

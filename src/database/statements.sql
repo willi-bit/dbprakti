@@ -23,7 +23,7 @@ select p.productid
 from product p
          join productcatalog pc on p.productid = pc.product
 group by p.productid
-having count(pc.price) > 1 and max(pc.price) > min(pc.price);
+having count(pc.price) > 1 and max(pc.price) > 2*min(pc.price);
 
 --Welche Produkte haben sowohl mindestens eine sehr schlechte (Punktzahl: 1) als auch mindestens eine sehr gute (Punktzahl: 5) Bewertung?
 select productid from product p
