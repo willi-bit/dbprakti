@@ -33,13 +33,11 @@ CREATE TABLE Person(
 
 CREATE TABLE Book(
     ProductID VARCHAR(255) PRIMARY KEY,
-    Author INT NOT NULL,
     Pages INT NOT NULl,
     ReleaseDate DATE NOT NULL,
     ISBN VARCHAR(255) UNIQUE NOT NULL,
     Publisher VARCHAR(255)NOT NULL,
-    FOREIGN KEY (ProductID) REFERENCES Product(ProductID) ON UPDATE CASCADE,
-    FOREIGN KEY (Author) REFERENCES Person(PersonID) ON UPDATE CASCADE
+    FOREIGN KEY (ProductID) REFERENCES Product(ProductID) ON UPDATE CASCADE
 );
 
 CREATE TABLE DVD(
@@ -47,22 +45,49 @@ CREATE TABLE DVD(
     Format VARCHAR(255),
     Length INT,
     RegionCode INT,
-    Actors INT[],
-    Creator INT,
     Director INT,
     FOREIGN KEY (ProductID) REFERENCES Product(ProductID) ON UPDATE CASCADE,
-    FOREIGN KEY (Creator) REFERENCES Person(PersonID) ON UPDATE CASCADE,
     FOREIGN KEY (Director) REFERENCES Person(PersonID) ON UPDATE CASCADE
 );
 
 CREATE TABLE CD(
     ProductID VARCHAR(255) PRIMARY KEY,
-    Artist INT NOT NULL,
     Label VARCHAR(255) NOT NULL,
     ReleaseDate DATE NOT NULL,
     TitleList TEXT NOT NULL,
-    FOREIGN KEY (ProductID) REFERENCES Product(ProductID) ON UPDATE CASCADE,
-    FOREIGN KEY (Artist) REFERENCES Person(PersonID) ON UPDATE CASCADE
+    FOREIGN KEY (ProductID) REFERENCES Product(ProductID) ON UPDATE CASCADE
+);
+
+CREATE TABLE Book_Author(
+    Book_ProductID VARCHAR(255),
+    Author_ID INT,
+    PRIMARY KEY (Book_ProductID, Author_ID),
+    FOREIGN KEY (Book_ProductID) REFERENCES Book(ProductID) ON UPDATE CASCADE,
+    FOREIGN KEY (Author_ID) REFERENCES Person(PersonID) ON UPDATE CASCADE
+);
+
+CREATE TABLE DVD_Actor(
+    DVD_ProductID VARCHAR(255),
+    Actor_ID INT,
+    PRIMARY KEY (DVD_ProductID, Actor_ID),
+    FOREIGN KEY (DVD_ProductID) REFERENCES DVD(ProductID) ON UPDATE CASCADE,
+    FOREIGN KEY (Actor_ID) REFERENCES Person(PersonID) ON UPDATE CASCADE
+);
+
+CREATE TABLE DVD_Creator(
+    DVD_ProductID VARCHAR(255),
+    Creator_ID INT,
+    PRIMARY KEY (DVD_ProductID, Creator_ID),
+    FOREIGN KEY (DVD_ProductID) REFERENCES DVD(ProductID) ON UPDATE CASCADE,
+    FOREIGN KEY (Creator_ID) REFERENCES Person(PersonID) ON UPDATE CASCADE
+);
+
+CREATE TABLE CD_Artist(
+    CD_ProductID VARCHAR(255),
+    Artist_ID INT,
+    PRIMARY KEY (CD_ProductID, Artist_ID),
+    FOREIGN KEY (CD_ProductID) REFERENCES CD(ProductID) ON UPDATE CASCADE,
+    FOREIGN KEY (Artist_ID) REFERENCES Person(PersonID) ON UPDATE CASCADE
 );
 
 CREATE TABLE Store(
@@ -75,7 +100,7 @@ CREATE TABLE Store(
 CREATE TABLE ProductCatalog(
     Store VARCHAR(255),
     Product VARCHAR(255),
-    Price DECIMAL,
+    Price DECIMAL CHECK (Price >= 0),
     Available BOOLEAN,
     Condition VARCHAR(255),
     PRIMARY KEY (Store, Product, Condition),
@@ -110,7 +135,7 @@ CREATE TABLE Review(
     ReviewID VARCHAR(255) PRIMARY KEY,
     Customer VARCHAR(255),
     Product VARCHAR(255),
-    Stars INT NOT NULL,
+    Stars INT NOT NULL CHECK (Stars <= 5 AND Stars >= 0),
     Summary TEXT NOT NULL,
     Review TEXT NOT NULL,
     Helpful INT NOT NULL,
@@ -133,3 +158,6 @@ RETURNS TRIGGER AS 'DECLARE avg_rating FLOAT; BEGIN SELECT AVG(Stars) INTO avg_r
 CREATE TRIGGER update_product_rating_trigger
     AFTER INSERT OR UPDATE OR DELETE ON Review
     FOR EACH ROW EXECUTE FUNCTION update_product_rating();
+
+--Insert Person Uknown for null values
+INSERT INTO Person (Name) VALUES ('Unknown');

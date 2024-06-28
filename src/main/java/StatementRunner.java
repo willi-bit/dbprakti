@@ -28,7 +28,7 @@ public class StatementRunner {
                 having count(pc.price) > 1 and max(pc.price) > min(pc.price);
                 """;
         String restOfThePack = """
-                select productid from product p\s
+                select productid from product p
                 join review r1 on p.productid=r1.product and r1.stars=1
                 join review r2 on p.productid=r2.product and r2.stars=5
                 

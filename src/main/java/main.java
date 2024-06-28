@@ -19,7 +19,6 @@ public class main {
             xmlToDatabase.main();
             Map<Category, List<String>> categories = xmlToDatabase.getCategories();
 
-//            dbImporter.InsertCategories(categories);
             for (Map.Entry<Category, List<String>> entry : categories.entrySet()) {
                 Category category = entry.getKey();
 

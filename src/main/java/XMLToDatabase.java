@@ -136,7 +136,7 @@ public class XMLToDatabase {
                         actorsArr[j] = elementName;
                         personSet.add(elementName);
                     }
-                    String actors = String.join(", ", actorsArr);
+                    String actors = String.join(",", actorsArr);
 
                     Element creatorsElement = (Element) element.getElementsByTagName("creators").item(0);
                     NodeList creatorElements = creatorsElement.getElementsByTagName("creator");
@@ -150,12 +150,12 @@ public class XMLToDatabase {
                         creatorsArr[j] = elementName;
                         personSet.add(elementName);
                     }
-                    String creators = String.join(", ", creatorsArr);
+                    String creators = String.join(",", creatorsArr);
 
                     String director = element.getElementsByTagName("director").item(0) != null ?
                             element.getElementsByTagName("director").item(0).getTextContent().trim().split("\\n")[0] :
                             "";
-                    personSet.add(director);
+                    personSet.add(director.trim());
 
                     Element dvdspec = (Element) element.getElementsByTagName("dvdspec").item(0);
                     String format = dvdspec.getElementsByTagName("format").item(0).getTextContent().trim().split("\\n")[0];
@@ -185,7 +185,7 @@ public class XMLToDatabase {
                         artistsArr[j] = elementName;
                         personSet.add(elementName);
                     }
-                    String artist = String.join(", ", artistsArr);
+                    String artist = String.join(",", artistsArr);
                     if (artist.length() < 2) {
                         artist = null;
                     }
@@ -243,7 +243,7 @@ public class XMLToDatabase {
                         personSet.add(elementName);
 
                     }
-                    String authorList = String.join(", ", authorsArr);
+                    String authorList = String.join(",", authorsArr);
                     Element bookSpec = (Element) element.getElementsByTagName("bookspec").item(0);
                     Integer pages = bookSpec.getElementsByTagName("pages").item(0).getTextContent().isEmpty() ? null : Integer.parseInt(bookSpec.getElementsByTagName("pages").item(0).getTextContent().trim());
 
@@ -290,7 +290,6 @@ public class XMLToDatabase {
             ProductSimilars newProduct = new ProductSimilars(product, nl);
             products.add(newProduct);
             Element priceElement = (Element) element.getElementsByTagName("price").item(0);
-            // Ist keinen Preis zu haben gültig?
             Float price = priceElement == null ? null : priceElement.getTextContent().trim().isEmpty() ? null : Float.parseFloat(priceElement.getTextContent().trim());
             boolean isAvailable = true;
             if (price == null) {
