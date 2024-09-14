@@ -1,3 +1,5 @@
+import Entities.Product;
+
 import java.util.List;
 
 public class ProductSimilars {

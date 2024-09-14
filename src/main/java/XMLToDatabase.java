@@ -1,13 +1,9 @@
+import Entities.*;
 import org.w3c.dom.*;
-import org.w3c.dom.ls.LSOutput;
-import org.xml.sax.SAXException;
 
 import javax.xml.parsers.*;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -121,7 +117,7 @@ public class XMLToDatabase {
                 }
             }
             switch (name) {
-                case "DVD":
+                case "Entities.DVD":
                     String id = element.getAttribute("asin").trim();
 
                     Element actorsElement = (Element) element.getElementsByTagName("actors").item(0);
@@ -226,7 +222,7 @@ public class XMLToDatabase {
                     cds.add(cd);
                     break;
 
-                case "Book":
+                case "Entities.Book":
                     String bookTitle = element.getElementsByTagName("title").item(0).getTextContent().trim().split("\\n")[0];
                     String bookId = element.getAttribute("asin").trim();
 

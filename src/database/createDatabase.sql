@@ -7,7 +7,7 @@ CREATE TABLE Category(
 
 ALTER TABLE Category
     ADD COLUMN ParentCategory VARCHAR(255),
-    ADD FOREIGN KEY (ParentCategory) REFERENCES Category(CategoryID) ON UPDATE CASCADE,
+    ADD FOREIGN KEY (ParentCategory) REFERENCES Entities.Category(CategoryID) ON UPDATE CASCADE,
     ADD CONSTRAINT UniqueNameParentCombination UNIQUE (Name, ParentCategory);
 
 CREATE TABLE Product(
@@ -153,11 +153,11 @@ CREATE TABLE SimilarProduct(
 );
 
 CREATE OR REPLACE FUNCTION update_product_rating()
-RETURNS TRIGGER AS 'DECLARE avg_rating FLOAT; BEGIN SELECT AVG(Stars) INTO avg_rating FROM Review WHERE Product = NEW.Product; UPDATE Product SET Rating = avg_rating WHERE ProductID = NEW.Product; RETURN NEW; END; ' LANGUAGE plpgsql;
+RETURNS TRIGGER AS 'DECLARE avg_rating FLOAT; BEGIN SELECT AVG(Stars) INTO avg_rating FROM Entities.Review WHERE Entities.Product = NEW.Entities.Product; UPDATE Entities.Product SET Rating = avg_rating WHERE ProductID = NEW.Entities.Product; RETURN NEW; END; ' LANGUAGE plpgsql;
 
 CREATE TRIGGER update_product_rating_trigger
-    AFTER INSERT OR UPDATE OR DELETE ON Review
+    AFTER INSERT OR UPDATE OR DELETE ON Entities.Review
     FOR EACH ROW EXECUTE FUNCTION update_product_rating();
 
---Insert Person Uknown for null values
+--Insert Entities.Person Unknown for null values
 INSERT INTO Person (Name) VALUES ('Unknown');

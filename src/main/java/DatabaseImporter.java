@@ -1,3 +1,5 @@
+import Entities.*;
+
 import java.sql.*;
 import java.util.*;
 import java.io.*;
@@ -206,7 +208,7 @@ public class DatabaseImporter {
                 preparedStatement.setNull(1, java.sql.Types.INTEGER);
             }
             preparedStatement.setDate(2, book.releaseDate);
-            preparedStatement.setString(3, book.ISBN);
+            preparedStatement.setString(3, book.isbn);
             preparedStatement.setString(4, book.publisher);
             preparedStatement.setString(5, book.id);
             preparedStatement.executeUpdate();

@@ -1,11 +1,30 @@
 import java.io.*;
 import java.sql.*;
 import java.util.*;
+
+import Entities.Category;
+import Entities.Review;
 import org.apache.ibatis.jdbc.ScriptRunner;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
 public class main {
+
     public static void main(String[] args) {
+
         System.out.println("STARTING");
+
+        StandardServiceRegistry ssr = new StandardServiceRegistryBuilder().configure("hibernate.cfg.xml").build();
+        Metadata meta = new MetadataSources(ssr).getMetadataBuilder().build();
+
+        SessionFactory factory = meta.getSessionFactoryBuilder().build();
+
+        Session session = factory.openSession();
+
         try (Connection dbConnection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres")){
 
             ScriptRunner dbCreator = new ScriptRunner(dbConnection);
