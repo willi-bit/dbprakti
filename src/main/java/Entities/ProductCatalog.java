@@ -27,11 +27,15 @@ public class ProductCatalog {
     @Column(name="condition")
     public String condition;
 
+    public String storeId, productId;
+
     public ProductCatalog() {}
 
     public ProductCatalog(String storeId, String productId, Float price, boolean isAvailable, String condition) {
         this.price = price;
         this.isAvailable = isAvailable;
         this.condition = condition;
+        this.storeId = storeId;
+        this.productId = productId;
     }
 }

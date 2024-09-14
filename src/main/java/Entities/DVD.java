@@ -25,7 +25,9 @@ public class DVD {
 
     @OneToOne
     @JoinColumn(name = "ProductID", referencedColumnName = "ProductID", foreignKey = @ForeignKey(name = "fk_dvd_product"))
-    private Product product;
+    public Product product;
+
+    public String directorId, actorId, creatorId;
 
     public DVD() {}
 
@@ -34,5 +36,8 @@ public class DVD {
         this.format = format;
         this.length = length;
         this.regionCode = regionCode;
+        this.directorId= director;
+        this.actorId = actors;
+        this.creatorId = creator;
     }
 }

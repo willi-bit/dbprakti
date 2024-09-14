@@ -33,6 +33,8 @@ public class Review {
     @Column(name = "Username", length = 255, nullable = false)
     public String username;
 
+    public String productId;
+
     public Review() {}
 
     public Review(String id, String product, int stars, String summary, String review, int helpful, String username) {
@@ -42,5 +44,6 @@ public class Review {
         this.review = review;
         this.helpful = helpful;
         this.username = username;
+        this.productId = product;
     }
 }

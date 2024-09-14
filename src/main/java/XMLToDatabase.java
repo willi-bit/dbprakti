@@ -293,7 +293,7 @@ public class XMLToDatabase {
             }
             String condition = priceElement == null ? null : priceElement.getAttribute("state").trim();
 
-            ProductCatalog productCatalog = new ProductCatalog(store.id, productId, price, isAvailable, condition);
+            ProductCatalog productCatalog = new ProductCatalog(store.storeId, productId, price, isAvailable, condition);
             similars.clear();
             catalogs.add(productCatalog);
         }
@@ -356,7 +356,7 @@ public class XMLToDatabase {
                 for (Map.Entry<Category, List<String>> mapElement : map.entrySet()) {
                     Element comparedElement = mapElement.getKey().node;
                     if (comparedElement == parentElement) {
-                        String parentId = mapElement.getKey().id;
+                        String parentId = mapElement.getKey().categoryId;
                         category = new Category(categoryName, categoryId, parentId, categoryElement);
                     }
                 }

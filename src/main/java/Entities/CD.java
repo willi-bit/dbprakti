@@ -25,6 +25,8 @@ public class CD {
     @JoinColumn(name = "ProductID", referencedColumnName = "ProductID", foreignKey = @ForeignKey(name = "fk_cd_product"))
     public Product product;
 
+    public String artistId;
+
     public CD() {}
 
     public CD(String id, String artist, String label, Date releaseDate, String titleList) {
@@ -32,11 +34,13 @@ public class CD {
         this.label = label;
         this.releaseDate = new java.sql.Date(releaseDate.getTime());
         this.titleList = titleList;
+        this.artistId = artist;
     }
     public CD(String id, String artist, String label, java.sql.Date releaseDate, String titleList) {
         this.productId = id;
         this.label = label;
         this.releaseDate = releaseDate;
         this.titleList = titleList;
+        this.artistId = artist;
     }
 }

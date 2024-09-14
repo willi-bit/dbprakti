@@ -27,6 +27,8 @@ public class Book {
     @JoinColumn(name = "ProductID", referencedColumnName = "ProductID", foreignKey = @ForeignKey(name = "fk_book_product"))
     public Product product;
 
+    public String authorId;
+
     public Book() {}
 
     public Book(String id, String author, String publisher, Integer pages, java.sql.Date releaseDate, String isbn) {
@@ -35,6 +37,7 @@ public class Book {
         this.pages = pages;
         this.releaseDate = releaseDate;
         this.isbn = isbn;
+        this.authorId = author;
     }
 
     public String toString(){

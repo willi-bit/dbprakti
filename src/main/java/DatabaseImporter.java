@@ -38,13 +38,13 @@ public class DatabaseImporter {
         String insertCategorySQL = "INSERT INTO category (name, categoryid, parentcategory) VALUES (?,?,?)";
         try (Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
              PreparedStatement preparedStatement = connection.prepareStatement(insertCategorySQL)) {
-            if (category.parent != null) {
+            if (category.parentCategory != null) {
                 preparedStatement.setString(1, category.name);
-                preparedStatement.setString(2, category.id);
-                preparedStatement.setString(3, category.parent);
+                preparedStatement.setString(2, category.categoryId);
+                preparedStatement.setString(3, category.parentCategory);
             } else {
                 preparedStatement.setString(1, category.name);
-                preparedStatement.setString(2, category.id);
+                preparedStatement.setString(2, category.categoryId);
                 preparedStatement.setNull(3, Types.VARCHAR);
             }
             preparedStatement.executeUpdate();
@@ -78,7 +78,7 @@ public class DatabaseImporter {
             for (String product : products) {
 
                 preparedStatement.setString(1, product);
-                preparedStatement.setString(2, category.id);
+                preparedStatement.setString(2, category.categoryId);
                 preparedStatement.addBatch();
             }
             preparedStatement.executeBatch();
@@ -111,7 +111,7 @@ public class DatabaseImporter {
 
             preparedStatement.setString(1, store.name);
             preparedStatement.setString(2, store.address);
-            preparedStatement.setString(3, store.id);
+            preparedStatement.setString(3, store.storeId);
 
             preparedStatement.execute();
 
@@ -210,10 +210,10 @@ public class DatabaseImporter {
             preparedStatement.setDate(2, book.releaseDate);
             preparedStatement.setString(3, book.isbn);
             preparedStatement.setString(4, book.publisher);
-            preparedStatement.setString(5, book.id);
+            preparedStatement.setString(5, book.productId);
             preparedStatement.executeUpdate();
 
-            InsertAuthors(book.id, book.author);
+            InsertAuthors(book.productId, book.authorId);
 
         } catch (SQLException e) {
             try {
@@ -252,12 +252,12 @@ public class DatabaseImporter {
             } else {
                 preparedStatement.setNull(3, java.sql.Types.INTEGER);
             }
-            preparedStatement.setInt(4, getPersonId(dvd.director));
-            preparedStatement.setString(5, dvd.id);
+            preparedStatement.setInt(4, getPersonId(dvd.directorId));
+            preparedStatement.setString(5, dvd.productId);
             preparedStatement.executeUpdate();
 
-            InsertCreators(dvd.id, dvd.creator);
-            InsertActors(dvd.id, dvd.actors);
+            InsertCreators(dvd.productId, dvd.creatorId);
+            InsertActors(dvd.productId, dvd.actorId);
 
         } catch (SQLException e) {
             try {
@@ -288,10 +288,10 @@ public class DatabaseImporter {
             preparedStatement.setString(1, cd.label);
             preparedStatement.setDate(2, cd.releaseDate);
             preparedStatement.setString(3, cd.titleList);
-            preparedStatement.setString(4, cd.id);
+            preparedStatement.setString(4, cd.productId);
             preparedStatement.executeUpdate();
 
-            InsertArtists(cd.id, cd.artist);
+            InsertArtists(cd.productId, cd.artistId);
 
         } catch (SQLException e) {
             try {
@@ -464,7 +464,7 @@ public class DatabaseImporter {
                 preparedStatement.setNull(3, java.sql.Types.INTEGER);
             }
             preparedStatement.setString(4, product.picture);
-            preparedStatement.setString(5, product.id);
+            preparedStatement.setString(5, product.productID);
             preparedStatement.executeUpdate();
 
             InsertSimilarProducts(entry);
@@ -496,7 +496,7 @@ public class DatabaseImporter {
              PreparedStatement preparedStatement = connection.prepareStatement(insertProductSQL)) {
 
             for (String similarProduct : entry.similars) {
-                preparedStatement.setString(1, entry.product.id);
+                preparedStatement.setString(1, entry.product.productID);
                 preparedStatement.setString(2, similarProduct);
                 preparedStatement.executeUpdate();
             }
@@ -565,11 +565,11 @@ public class DatabaseImporter {
         try (Connection connection = DriverManager.getConnection(this.url, this.user, this.password);
              PreparedStatement preparedStatement = connection.prepareStatement(insertREviewsSQL)) {
 
-            preparedStatement.setString(1, review.id);
-            preparedStatement.setString(2, review.product);
+            preparedStatement.setString(1, review.reviewId);
+            preparedStatement.setString(2, review.productId);
             preparedStatement.setInt(3, review.stars);
             preparedStatement.setString(4, review.summary);
-            preparedStatement.setString(5, review.content);
+            preparedStatement.setString(5, review.review);
             preparedStatement.setInt(6, review.helpful);
             preparedStatement.setString(7, review.username);
             preparedStatement.setNull(8, java.sql.Types.VARCHAR);
